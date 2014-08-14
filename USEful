@@ -60,12 +60,12 @@ set_expand() {
 	fi
 }
 
-list_used() {
+list_enabled() {
 	set_expand ${1}
 	echo_list "$(list_flags ${EXPAND} | enabled)"
 }
 
-list_unused() {
+list_disabled() {
 	set_expand ${1}
 	echo_list "$(list_flags ${EXPAND} | disabled)"
 }
@@ -80,10 +80,10 @@ PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9]* KiB/\1/p' /tmp/USEful-emerge-ou
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9_]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
 case ${1} in
-used)
-	list_used ${2};;
-unused)
-	list_unused ${2};;
+enabled)
+	list_enabled ${2};;
+disabled)
+	list_disabled ${2};;
 expands)
 	echo_list "${EXPANDS}";;
 flags)
