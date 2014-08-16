@@ -31,17 +31,18 @@ echo_list() {
 	fi
 }
 
+filter_expands() {
+	echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" | sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g'
+}
+
 list_all_flags() {
-	# TODO: copied from list_flags(). Simplify.
-	local filtered
-	filtered=$(echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" | sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g')
-	echo "${filtered}" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
+	echo "$(filter_expands ${1})" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
 }
 
 list_flags() {
 	local filtered makeconf_flags flag
-	filtered=$(echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" | sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g')
-	makeconf_flags=$(. /etc/portage/make.conf; echo "${!1}")
+	filtered="$(filter_expands ${1})"
+	makeconf_flags=$(source /etc/portage/make.conf; echo "${!1}")
 	for flag in ${makeconf_flags}; do
 		filtered=$(echo "${filtered}" | sed "s/ ${flag} / /")
 	done
