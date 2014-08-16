@@ -8,7 +8,17 @@
 # - add config files to manually filter out stuff
 # - doc, manpage
 
-. /lib/gentoo/functions.sh
+source /lib/gentoo/functions.sh
+
+#
+# Verify the EXPAND_USE flag is valid, i.e. in the EXPANDS list
+# $1: the USE_EXPAND to verify
+#
+check_expand() {
+	if [[ $(echo "${EXPANDS}" | grep "^${1:-USE}$") ==  "" ]]; then
+		eerror "${1} is not a valid USE_EXPAND"
+	fi
+}
 
 echo_list() {
 	if [[ $1 != "" ]]; then
@@ -46,26 +56,17 @@ disabled() {
 	grep "^-"
 }
 
-set_expand() {
-	if [[ ${1} != "" ]]; then
-		EXPAND=${1}
-	fi
-}
-
 list_enabled() {
-	set_expand ${1}
-	echo_list "$(list_flags ${EXPAND} | enabled)"
+	echo_list "$(list_flags ${1:-USE} | enabled)"
 }
 
 list_disabled() {
-	set_expand ${1}
-	echo_list "$(list_flags ${EXPAND} | disabled)"
+	echo_list "$(list_flags ${1:-USE} | disabled)"
 }
 
 
 EINFO_QUIET=no
 IN_COLUMN=no
-EXPAND=USE
 
 if [[ ! -f /tmp/USEful-emerge-output ]]; then
 	ebegin "Caching @world"
@@ -77,14 +78,18 @@ EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9
 
 case ${1} in
 enabled)
+	check_expand ${2}
 	list_enabled ${2};;
 disabled)
+	check_expand ${2}
 	list_disabled ${2};;
 expands)
 	echo_list "${EXPANDS}";;
 flags)
+	check_expand ${2}
 	echo_list "$(list_flags ${2})";;
 all-flags)
+	check_expand ${2}
 	echo_list "$(list_all_flags ${2})";;
 packages)
 	echo "${PACKAGES}"
