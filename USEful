@@ -21,14 +21,6 @@ echo_list() {
 	fi
 }
 
-emerge_world() {
-	if [[ ! -f /tmp/USEful-emerge-output ]]; then
-		ebegin "Caching @world"
-		emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
-		eend
-	fi
-}
-
 list_all_flags() {
 	# TODO: copied from list_flags(). Simplify.
 	local filtered
@@ -75,7 +67,11 @@ EINFO_QUIET=no
 IN_COLUMN=no
 EXPAND=USE
 
-emerge_world
+if [[ ! -f /tmp/USEful-emerge-output ]]; then
+	ebegin "Caching @world"
+	emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
+	eend
+fi
 PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9]* KiB/\1/p' /tmp/USEful-emerge-output)
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9_]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
