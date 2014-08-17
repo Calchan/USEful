@@ -4,8 +4,8 @@
 # - finish implementing execute() everywhere
 # - filter out stuff from /etc/portage/package.use
 # - add expanded flags to filter list
-# - add options: quiet, keep minus, force caching
-# - add enable/disable/prune with alphabetical sorting
+# - add options: keep minus, force caching
+# - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
 # - show help when no command, add help command
 # - more exhaustive error checking
@@ -128,8 +128,35 @@ list_disabled() {
 }
 
 
-EINFO_QUIET=no
-IN_COLUMN=no
+EINFO_QUIET="${EINFO_QUIET:-no}"
+IN_COLUMN="${IN_COLUMN:-no}"
+
+while [[ ${1:0:1} == "-" ]]; do
+    case ${1} in
+        --column)
+            IN_COLUMN=yes;;
+        --quiet)
+            EINFO_QUIET=yes;;
+        --*)
+            eerror "Unknown long option: ${1}";;
+        -)
+            eerror "Lone stray dash";;
+        -*)
+            option_list=${1:1}
+            while [[ ${#option_list} != "0" ]]; do
+                case ${option_list:0:1} in
+                    1|c)
+                        IN_COLUMN=yes;;
+                    q)
+                        EINFO_QUIET=yes;;
+                    *)
+                        einfo "Unknown short option: ${option_list:0:1}";;
+                esac
+                option_list=${option_list:1}
+            done
+    esac
+    shift
+done
 
 if [[ ! -f /tmp/USEful-emerge-output ]]; then
     ebegin "Caching @world"
@@ -140,16 +167,18 @@ PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9]* KiB/\1/p' /tmp/USEful-emerge-ou
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9_]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
 case ${1} in
-    enabled)
-        execute list_enabled ${2};;
-    disabled)
-        execute list_disabled ${2};;
-    expands)
-        echo_list "${EXPANDS}";;
-    flags)
-        execute list_flags ${2};;
     all-flags)
         execute list_all_flags ${2};;
+    enabled)
+        execute list_enabled ${2};;
+    expands)
+        echo_list "${EXPANDS}";;
+    disabled)
+        execute list_disabled ${2};;
+    flags)
+        execute list_flags ${2};;
     packages)
-        echo "${PACKAGES}"
+        echo "${PACKAGES}";;
+    *)
+        eerror "Unknown command: ${1}";;
 esac
