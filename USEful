@@ -6,68 +6,115 @@
 # - add options: quiet, keep minus, force caching
 # - add enable/disable/prune with alphabetical sorting
 # - add config files to manually filter out stuff
+# - more exhaustive error checking
+# - more code comments
 # - doc, manpage
 
 source /lib/gentoo/functions.sh
 
 #
-# Verify the EXPAND_USE flag is valid, i.e. in the EXPANDS list
+# Verify the EXPAND_USE name is valid, i.e. in the EXPANDS list
 # $1: the USE_EXPAND to verify
 #
 check_expand() {
-	if [[ $(echo "${EXPANDS}" | grep "^${1:-USE}$") ==  "" ]]; then
-		eerror "${1} is not a valid USE_EXPAND"
-	fi
+    if [[ $(echo "${EXPANDS}" | grep "^${1:-USE}$") ==  "" ]]; then
+        eerror "${1} is not a valid USE_EXPAND"
+    fi
 }
 
+#
+# Output a list all on the same line or on on each line depending on the sate of the IN_COLUMN variable.
+# $1: the list to output
+#
 echo_list() {
-	if [[ $1 != "" ]]; then
-		if yesno ${IN_COLUMN}; then
-			echo -n "${1}"
-		else
-			echo -n ${1}
-		fi
-		echo
-	fi
+    if [[ $1 != "" ]]; then
+        if yesno ${IN_COLUMN}; then
+            echo -n "${1}"
+        else
+            echo -n ${1}
+        fi
+        echo
+    fi
 }
 
+#
+# Execute an arbitrary function using an EXPAND_USE variable as its first parameter. The EXPAND_USE variable is first
+# checked for validity, and then replaced by USE if empty.
+# $1: the function to execute
+# $2: the EXPAND_USE variable
+#
 execute() {
-	check_expand ${2}
-	${1} ${2:-USE}
+    check_expand ${2}
+    ${1} ${2:-USE}
 }
 
+#
+# In the list of packages with their flags, only keep those packages having the EXPAND_USE being dealt with, and only
+# keep the corresponding flags. All flags for other EXPAND_USE variables and packages without this particular EXPAND_USE
+# variable are dropped.
+# ${1}: the EXPAND_USE variable
+#
 filter_expands() {
-	echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" | sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g'
+    echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" |
+        sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g'
 }
 
+#
+# Output all visible flags for a given EXPAND_USE variable.
+# ${1}: the EXPAND_USE variable
+#
 list_all_flags() {
-	echo "$(filter_expands ${1})" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
+    echo "$(filter_expands ${1})" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
 }
 
+#
+# Filter flags for a given EXPAND_USE variable.
+# Dropped flags are those listed in:
+#  - /etc/portage/make.conf
+#  - /etc/portage/package.use
+#  - TODO: complete that list
+# ${1}: the EXPAND_USE variable
+#
 list_flags() {
-	local filtered makeconf_flags flag
-	filtered="$(filter_expands ${1})"
-	makeconf_flags=$(source /etc/portage/make.conf; echo "${!1}")
-	for flag in ${makeconf_flags}; do
-		filtered=$(echo "${filtered}" | sed "s/ ${flag} / /")
-	done
-	echo "${filtered}" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
+    local filtered makeconf_flags flag
+    filtered="$(filter_expands ${1})"
+    makeconf_flags=$(source /etc/portage/make.conf; echo "${!1}")
+    for flag in ${makeconf_flags}; do
+        filtered=$(echo "${filtered}" | sed "s/ ${flag} / /")
+    done
+    # TODO: finish filtering
+    echo "${filtered}" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
 }
 
+#
+# Only keep enabled flags. Use this with pipe.
+#
 enabled() {
-	grep -v "^-"
+    grep -v "^-"
 }
 
+#
+# Only keep disabled flags. Use this with pipe.
+# TODO: deal with optionally removable minus sign.
+#
 disabled() {
-	grep "^-"
+    grep "^-"
 }
 
+#
+# Output all flags for a given EXPAND_USE which are not explicitely enabled and could need to be looked at.
+# ${1}: the EXPAND_USE variable
+#
 list_enabled() {
-	echo_list "$(list_flags ${1:-USE} | enabled)"
+    echo_list "$(list_flags ${1:-USE} | enabled)"
 }
 
+#
+# Output all flags for a given EXPAND_USE which are not explicitely disabled and could need to be looked at.
+# ${1}: the EXPAND_USE variable
+#
 list_disabled() {
-	echo_list "$(list_flags ${1:-USE} | disabled)"
+    echo_list "$(list_flags ${1:-USE} | disabled)"
 }
 
 
@@ -75,26 +122,26 @@ EINFO_QUIET=no
 IN_COLUMN=no
 
 if [[ ! -f /tmp/USEful-emerge-output ]]; then
-	ebegin "Caching @world"
-	emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
-	eend
+    ebegin "Caching @world"
+    emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
+    eend
 fi
 PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9]* KiB/\1/p' /tmp/USEful-emerge-output)
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9_]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
 case ${1} in
-enabled)
-	execute list_enabled ${2};;
-disabled)
-	execute list_disabled ${2};;
-expands)
-	echo_list "${EXPANDS}";;
-flags)
-	check_expand ${2}
-	echo_list "$(list_flags ${2})";;
-all-flags)
-	check_expand ${2}
-	echo_list "$(list_all_flags ${2})";;
-packages)
-	echo "${PACKAGES}"
+    enabled)
+        execute list_enabled ${2};;
+    disabled)
+        execute list_disabled ${2};;
+    expands)
+        echo_list "${EXPANDS}";;
+    flags)
+        check_expand ${2}
+        echo_list "$(list_flags ${2})";;
+    all-flags)
+        check_expand ${2}
+        echo_list "$(list_all_flags ${2})";;
+    packages)
+        echo "${PACKAGES}"
 esac
