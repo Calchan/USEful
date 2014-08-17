@@ -1,10 +1,9 @@
 #!/bin/bash
 
 # TODO:
-# - finish implementing execute() everywhere
 # - filter out stuff from /etc/portage/package.use
 # - add expanded flags to filter list
-# - add options: keep minus, force caching
+# - add option: force caching
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
 # - show help when no command, add help command
@@ -29,11 +28,16 @@ check_expand() {
 # $1: the list to output
 #
 echo_list() {
+    local list="${1}"
+    if ! yesno ${KEEP_MINUS}; then
+        list=$(echo "${list}" | sed 's/^-//')
+    fi
+    list=$(echo "${list}" | sort -u | grep -v '^$')
     if [[ $1 != "" ]]; then
         if yesno ${IN_COLUMN}; then
-            echo -n "${1}"
+            echo -n "${list}"
         else
-            echo -n ${1}
+            echo -n ${list}
         fi
         echo
     fi
@@ -66,7 +70,7 @@ filter_expands() {
 # ${1}: the EXPAND_USE variable
 #
 list_all_flags() {
-    echo_list "$(filter_expands ${1} | cut -d ' ' -f 2- | tr ' ' '\n' | sort -u | grep -v '^$')"
+    echo_list "$(filter_expands ${1} | cut -d ' ' -f 2- | tr ' ' '\n')"
 }
 
 #
@@ -85,7 +89,7 @@ filter_flags() {
         filtered=$(echo "${filtered}" | sed "s/ ${flag} / /")
     done
     # TODO: finish filtering
-    echo "${filtered}" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
+    echo "${filtered}" | cut -d " " -f 2- | tr " " "\n"
 }
 
 #
@@ -130,27 +134,35 @@ list_disabled() {
 
 EINFO_QUIET="${EINFO_QUIET:-no}"
 IN_COLUMN="${IN_COLUMN:-no}"
+KEEP_MINUS="${KEEP_MINUS:-no}"
 
 while [[ ${1:0:1} == "-" ]]; do
     case ${1} in
-        --column)
+        --column|in-column)
             IN_COLUMN=yes;;
+        --keep|--keep-minus)
+            KEEP_MINUS=yes;;
         --quiet)
             EINFO_QUIET=yes;;
         --*)
-            eerror "Unknown long option: ${1}";;
+            eerror "Unknown long option: ${1}"
+            exit 1;;
         -)
-            eerror "Lone stray dash";;
+            eerror "Lone stray dash"
+            exit 1;;
         -*)
             option_list=${1:1}
             while [[ ${#option_list} != "0" ]]; do
                 case ${option_list:0:1} in
                     1|c)
                         IN_COLUMN=yes;;
+                    k)
+                        KEEP_MINUS=yes;;
                     q)
                         EINFO_QUIET=yes;;
                     *)
-                        einfo "Unknown short option: ${option_list:0:1}";;
+                        eerror "Unknown short option: -${option_list:0:1}"
+                        exit 1;;
                 esac
                 option_list=${option_list:1}
             done
