@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TODO:
+# - finish implementing execute() everywhere
 # - filter out stuff from /etc/portage/package.use
 # - add expanded flags to filter list
 # - add options: quiet, keep minus, force caching
@@ -23,7 +24,7 @@ check_expand() {
 }
 
 #
-# Output a list all on the same line or on on each line depending on the sate of the IN_COLUMN variable.
+# Output a list all on the same line or one item per line depending on the sate of the IN_COLUMN variable.
 # $1: the list to output
 #
 echo_list() {
@@ -39,7 +40,7 @@ echo_list() {
 
 #
 # Execute an arbitrary function using an EXPAND_USE variable as its first parameter. The EXPAND_USE variable is first
-# checked for validity, and then replaced by USE if empty.
+# checked for validity and replaced by USE if empty.
 # $1: the function to execute
 # $2: the EXPAND_USE variable
 #
@@ -49,9 +50,9 @@ execute() {
 }
 
 #
-# In the list of packages with their flags, only keep those packages having the EXPAND_USE being dealt with, and only
-# keep the corresponding flags. All flags for other EXPAND_USE variables and packages without this particular EXPAND_USE
-# variable are dropped.
+# In the list of packages with their flags, only keep those packages having the EXPAND_USE variable being dealt with,
+# and only keep the corresponding flags. All flags for other EXPAND_USE variables and packages without this particular
+# EXPAND_USE variable are dropped.
 # ${1}: the EXPAND_USE variable
 #
 filter_expands() {
@@ -68,7 +69,7 @@ list_all_flags() {
 }
 
 #
-# Filter flags for a given EXPAND_USE variable.
+# Filter flags in the list of visible flags for a given EXPAND_USE variable.
 # Dropped flags are those listed in:
 #  - /etc/portage/make.conf
 #  - /etc/portage/package.use
@@ -87,14 +88,14 @@ list_flags() {
 }
 
 #
-# Only keep enabled flags. Use this with pipe.
+# Only keep enabled flags. Use this with a pipe.
 #
 enabled() {
     grep -v "^-"
 }
 
 #
-# Only keep disabled flags. Use this with pipe.
+# Only keep disabled flags. Use this with a pipe.
 # TODO: deal with optionally removable minus sign.
 #
 disabled() {
@@ -106,7 +107,7 @@ disabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_enabled() {
-    echo_list "$(list_flags ${1:-USE} | enabled)"
+    echo_list "$(list_flags ${1} | enabled)"
 }
 
 #
@@ -114,7 +115,7 @@ list_enabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_disabled() {
-    echo_list "$(list_flags ${1:-USE} | disabled)"
+    echo_list "$(list_flags ${1} | disabled)"
 }
 
 
