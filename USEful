@@ -31,6 +31,11 @@ echo_list() {
 	fi
 }
 
+execute() {
+	check_expand ${2}
+	${1} ${2:-USE}
+}
+
 filter_expands() {
 	echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" | sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g'
 }
@@ -79,11 +84,9 @@ EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9
 
 case ${1} in
 enabled)
-	check_expand ${2}
-	list_enabled ${2};;
+	execute list_enabled ${2};;
 disabled)
-	check_expand ${2}
-	list_disabled ${2};;
+	execute list_disabled ${2};;
 expands)
 	echo_list "${EXPANDS}";;
 flags)
