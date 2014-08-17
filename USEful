@@ -3,7 +3,6 @@
 # TODO:
 # - filter out stuff from /etc/portage/package.use
 # - add expanded flags to filter list
-# - add option: force caching
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
 # - show help when no command, add help command
@@ -109,7 +108,6 @@ enabled() {
 
 #
 # Only keep disabled flags. Use this with a pipe.
-# TODO: deal with optionally removable minus sign.
 #
 disabled() {
     grep "^-"
@@ -135,11 +133,14 @@ list_disabled() {
 EINFO_QUIET="${EINFO_QUIET:-no}"
 IN_COLUMN="${IN_COLUMN:-no}"
 KEEP_MINUS="${KEEP_MINUS:-no}"
+FORCE_REGEN="${FORCE_REGEN:-no}"
 
 while [[ ${1:0:1} == "-" ]]; do
     case ${1} in
         --column|in-column)
             IN_COLUMN=yes;;
+        --regen|--force-regen)
+            FORCE_REGEN=yes;;
         --keep|--keep-minus)
             KEEP_MINUS=yes;;
         --quiet)
@@ -156,6 +157,8 @@ while [[ ${1:0:1} == "-" ]]; do
                 case ${option_list:0:1} in
                     1|c)
                         IN_COLUMN=yes;;
+                    r)
+                        FORCE_REGEN=yes;;
                     k)
                         KEEP_MINUS=yes;;
                     q)
@@ -170,7 +173,7 @@ while [[ ${1:0:1} == "-" ]]; do
     shift
 done
 
-if [[ ! -f /tmp/USEful-emerge-output ]]; then
+if yesno "${FORCE_REGEN}" || [[ ! -f /tmp/USEful-emerge-output ]]; then
     ebegin "Caching @world"
     emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
     eend
