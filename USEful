@@ -7,6 +7,7 @@
 # - add options: quiet, keep minus, force caching
 # - add enable/disable/prune with alphabetical sorting
 # - add config files to manually filter out stuff
+# - show help when no command, add help command
 # - more exhaustive error checking
 # - more code comments
 # - doc, manpage
@@ -65,7 +66,7 @@ filter_expands() {
 # ${1}: the EXPAND_USE variable
 #
 list_all_flags() {
-    echo "$(filter_expands ${1})" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
+    echo_list "$(filter_expands ${1} | cut -d ' ' -f 2- | tr ' ' '\n' | sort -u | grep -v '^$')"
 }
 
 #
@@ -76,7 +77,7 @@ list_all_flags() {
 #  - TODO: complete that list
 # ${1}: the EXPAND_USE variable
 #
-list_flags() {
+filter_flags() {
     local filtered makeconf_flags flag
     filtered="$(filter_expands ${1})"
     makeconf_flags=$(source /etc/portage/make.conf; echo "${!1}")
@@ -85,6 +86,14 @@ list_flags() {
     done
     # TODO: finish filtering
     echo "${filtered}" | cut -d " " -f 2- | tr " " "\n" | sort -u | grep -v "^$"
+}
+
+#
+# Output all visible flags for a given EXPAND_USE variable, filtered with filter_flags().
+# ${1}: the EXPAND_USE variable
+#
+list_flags() {
+    echo_list "$(filter_flags ${1})"
 }
 
 #
@@ -107,7 +116,7 @@ disabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_enabled() {
-    echo_list "$(list_flags ${1} | enabled)"
+    echo_list "$(filter_flags ${1} | enabled)"
 }
 
 #
@@ -115,7 +124,7 @@ list_enabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_disabled() {
-    echo_list "$(list_flags ${1} | disabled)"
+    echo_list "$(filter_flags ${1} | disabled)"
 }
 
 
@@ -138,11 +147,9 @@ case ${1} in
     expands)
         echo_list "${EXPANDS}";;
     flags)
-        check_expand ${2}
-        echo_list "$(list_flags ${2})";;
+        execute list_flags ${2};;
     all-flags)
-        check_expand ${2}
-        echo_list "$(list_all_flags ${2})";;
+        execute list_all_flags ${2};;
     packages)
         echo "${PACKAGES}"
 esac
