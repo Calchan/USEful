@@ -215,6 +215,8 @@ case ${1} in
         execute list_flags ${2};;
     packages)
         execute filter_expands ${2};;
+    where)
+        echo "${PACKAGES}" | grep "[\" -({]${2}[\" )}%*]";;
     *)
         eerror "Unknown command: ${1}";;
 esac
