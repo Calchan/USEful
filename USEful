@@ -17,7 +17,7 @@ source /lib/gentoo/functions.sh
 # $1: the USE_EXPAND to verify
 #
 check_expand() {
-    if [[ $(echo "${EXPANDS}" | grep "^${1:-USE}$") ==  "" ]]; then
+    if [[ $(echo "${EXPANDS}" | grep "^${1}$") ==  "" ]]; then
         eerror "${1} is not a valid USE_EXPAND"
     fi
 }
@@ -40,17 +40,6 @@ echo_list() {
         fi
         echo
     fi
-}
-
-#
-# Execute an arbitrary function using an EXPAND_USE variable as its first parameter. The EXPAND_USE variable is first
-# checked for validity and replaced by USE if empty.
-# $1: the function to execute
-# $2: the EXPAND_USE variable
-#
-execute() {
-    check_expand ${2}
-    ${1} ${2:-USE}
 }
 
 #
@@ -129,6 +118,36 @@ list_disabled() {
     echo_list "$(filter_flags ${1} | disabled)"
 }
 
+#
+# Execute an arbitrary function using an EXPAND_USE variable as its first parameter. The EXPAND_USE variable is first
+# checked for validity and replaced by USE if empty. If "all" is passed instead of the name of an EXPAND_USE variable,
+# then list flags for all variables, except whe nit would become messy.
+# $1: the function to execute
+# $2: the EXPAND_USE variable
+#
+execute() {
+    local expand flag_list
+    if [[ ${2} == "all" ]]; then
+        if [[ ${1} == "filter_expands" ]]; then
+            eerror "Listing all EXPAND_USE variables is not allowed for this command"
+        else
+            for expand in ${EXPANDS}; do
+                flag_list="$(${1} ${expand})"
+                if [[ ${flag_list} != "" ]]; then
+                    if yesno IN_COLUMN && [[ ${expand} != "USE" ]]; then
+                        echo_list "${flag_list}" | sed "s/^/${expand,,}_/"
+                    else
+                        echo -n "${expand}: "
+                        echo_list "${flag_list}"
+                    fi
+                fi
+            done
+        fi
+    else
+        check_expand ${2:-USE}
+        ${1} ${2:-USE}
+    fi
+}
 
 EINFO_QUIET="${EINFO_QUIET:-no}"
 IN_COLUMN="${IN_COLUMN:-no}"
