@@ -54,11 +54,19 @@ filter_expands() {
 }
 
 #
+# Find all visible flags for a given EXPAND_USE variable.
+# ${1}: the EXPAND_USE variable
+#
+all_flags() {
+    echo "$(filter_expands ${1} | cut -d ' ' -f 2- | tr ' ' '\n')"
+}
+
+#
 # Output all visible flags for a given EXPAND_USE variable.
 # ${1}: the EXPAND_USE variable
 #
 list_all_flags() {
-    echo_list "$(filter_expands ${1} | cut -d ' ' -f 2- | tr ' ' '\n')"
+    echo_list "$(all_flags ${1})"
 }
 
 #
@@ -100,6 +108,22 @@ enabled() {
 #
 disabled() {
     grep "^-"
+}
+
+#
+# Output all enabled flags for a given EXPAND_USE, explicitely enabled by the user or not.
+# ${1}: the EXPAND_USE variable
+#
+list_all_enabled() {
+    echo_list "$(all_flags ${1} | enabled)"
+}
+
+#
+# Output all disabled flags for a given EXPAND_USE, explicitely disabled by the user or not.
+# ${1}: the EXPAND_USE variable
+#
+list_all_disabled() {
+    echo_list "$(all_flags ${1} | disabled)"
 }
 
 #
@@ -201,16 +225,20 @@ PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9]* KiB/\1/p' /tmp/USEful-emerge-ou
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9_]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
 case ${1} in
+    all-disabled)
+        execute list_all_disabled ${2};;
+    all-enabled)
+        execute list_all_enabled ${2};;
     all-flags)
         execute list_all_flags ${2};;
     all-packages)
         echo "${PACKAGES}";;
+    disabled)
+        execute list_disabled ${2};;
     enabled)
         execute list_enabled ${2};;
     expands)
         echo_list "${EXPANDS}";;
-    disabled)
-        execute list_disabled ${2};;
     flags)
         execute list_flags ${2};;
     packages)
