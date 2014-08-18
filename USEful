@@ -156,7 +156,7 @@ FORCE_REGEN="${FORCE_REGEN:-no}"
 
 while [[ ${1:0:1} == "-" ]]; do
     case ${1} in
-        --column|in-column)
+        --column|--in-column)
             IN_COLUMN=yes;;
         --regen|--force-regen)
             FORCE_REGEN=yes;;
