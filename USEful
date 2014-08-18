@@ -184,6 +184,8 @@ EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9
 case ${1} in
     all-flags)
         execute list_all_flags ${2};;
+    all-packages)
+        echo "${PACKAGES}";;
     enabled)
         execute list_enabled ${2};;
     expands)
@@ -193,7 +195,7 @@ case ${1} in
     flags)
         execute list_flags ${2};;
     packages)
-        echo "${PACKAGES}";;
+        execute filter_expands ${2};;
     *)
         eerror "Unknown command: ${1}";;
 esac
