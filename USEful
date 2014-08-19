@@ -66,8 +66,8 @@ echo_list() {
 # ${1}: the EXPAND_USE variable
 #
 filter_expands() {
-    echo "${PACKAGES}" | grep " ${1}=" | sed "s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /" |
-        sed 's/::[A-Za-z0-9-]*//g;s/%//g;s/[ \"]([^)]*)//g;s/[ \"]{[^}]*}//g'
+    echo "${PACKAGES}" | sed -ne "/ ${1}/s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /p" |
+            sed 's/::[A-Za-z0-9-]*//g;s/ [({][^)}]*[)}]//g;s/[*%]//g'
 }
 
 #
