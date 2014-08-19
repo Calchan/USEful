@@ -23,21 +23,38 @@ check_expand() {
 }
 
 #
+# Prepend the lowercased EXPAND_USE followed by an underscore to all flags when PREPEND_EXPAND=yes. Default to no when
+# listing on a single line, and to yes when listing in column.
+#
+prepend_or_not() {
+    if yesno ${IN_COLUMN}; then
+        PREPEND_EXPAND=${PREPEND_EXPAND:-yes}
+    else
+        PREPEND_EXPAND=${PREPEND_EXPAND:-no}
+    fi
+    if yesno ${PREPEND_EXPAND} && [[ ${1} != "USE" ]] && [[ ${1} != "" ]]; then
+        echo -n "${2}" | sed "s/^\(-\?\)/\1${1,,}_/"
+    else
+        echo -n "${2}"
+    fi
+}
+
+#
 # Output a list all on the same line or one item per line depending on the sate of the IN_COLUMN variable.
 # $1: the list to output
 #
 echo_list() {
-    local list="${1}"
+    local list="${2}"
     if ! yesno ${KEEP_MINUS}; then
         list=$(echo "${list}" | sed 's/^-//')
     fi
     list=$(echo "${list}" | sort -u | grep -v '^$')
-    if [[ $1 != "" ]]; then
-        if yesno ${IN_COLUMN}; then
-            echo -n "${list}"
-        else
-            echo -n ${list}
-        fi
+    if yesno ${IN_COLUMN}; then
+        prepend_or_not "${1}" "${list}"
+    else
+        prepend_or_not "${1}" "${list}" | tr "\n" " "
+    fi
+    if [[ ${list} != "" ]]; then
         echo
     fi
 }
@@ -66,7 +83,7 @@ all_flags() {
 # ${1}: the EXPAND_USE variable
 #
 list_all_flags() {
-    echo_list "$(all_flags ${1})"
+    echo_list ${1} "$(all_flags ${1})"
 }
 
 #
@@ -93,7 +110,7 @@ filter_flags() {
 # ${1}: the EXPAND_USE variable
 #
 list_flags() {
-    echo_list "$(filter_flags ${1})"
+    echo_list ${1} "$(filter_flags ${1})"
 }
 
 #
@@ -115,7 +132,7 @@ disabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_all_enabled() {
-    echo_list "$(all_flags ${1} | enabled)"
+    echo_list ${1} "$(all_flags ${1} | enabled)"
 }
 
 #
@@ -123,7 +140,7 @@ list_all_enabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_all_disabled() {
-    echo_list "$(all_flags ${1} | disabled)"
+    echo_list ${1} "$(all_flags ${1} | disabled)"
 }
 
 #
@@ -131,7 +148,7 @@ list_all_disabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_enabled() {
-    echo_list "$(filter_flags ${1} | enabled)"
+    echo_list ${1} "$(filter_flags ${1} | enabled)"
 }
 
 #
@@ -139,7 +156,7 @@ list_enabled() {
 # ${1}: the EXPAND_USE variable
 #
 list_disabled() {
-    echo_list "$(filter_flags ${1} | disabled)"
+    echo_list ${1} "$(filter_flags ${1} | disabled)"
 }
 
 #
@@ -158,12 +175,10 @@ execute() {
             for expand in ${EXPANDS}; do
                 flag_list="$(${1} ${expand})"
                 if [[ ${flag_list} != "" ]]; then
-                    if yesno IN_COLUMN && [[ ${expand} != "USE" ]]; then
-                        echo_list "${flag_list}" | sed "s/^/${expand,,}_/"
-                    else
+                    if ! yesno ${IN_COLUMN}; then
                         echo -n "${expand}: "
-                        echo_list "${flag_list}"
                     fi
+                    echo "${flag_list}"
                 fi
             done
         fi
@@ -173,21 +188,26 @@ execute() {
     fi
 }
 
+
 EINFO_QUIET="${EINFO_QUIET:-no}"
+FORCE_REGEN="${FORCE_REGEN:-no}"
 IN_COLUMN="${IN_COLUMN:-no}"
 KEEP_MINUS="${KEEP_MINUS:-no}"
-FORCE_REGEN="${FORCE_REGEN:-no}"
 
 while [[ ${1:0:1} == "-" ]]; do
     case ${1} in
-        --column|--in-column)
-            IN_COLUMN=yes;;
-        --regen|--force-regen)
-            FORCE_REGEN=yes;;
-        --keep|--keep-minus)
-            KEEP_MINUS=yes;;
         --quiet)
             EINFO_QUIET=yes;;
+        --regen|--force-regen)
+            FORCE_REGEN=yes;;
+        --column|--in-column)
+            IN_COLUMN=yes;;
+        --keep|--keep-minus)
+            KEEP_MINUS=yes;;
+        --no-prepend)
+            PREPEND_EXPAND=no;;
+        --prepend)
+            PREPEND_EXPAND=yes;;
         --*)
             eerror "Unknown long option: ${1}"
             exit 1;;
@@ -198,14 +218,14 @@ while [[ ${1:0:1} == "-" ]]; do
             option_list=${1:1}
             while [[ ${#option_list} != "0" ]]; do
                 case ${option_list:0:1} in
-                    1|c)
-                        IN_COLUMN=yes;;
-                    r)
-                        FORCE_REGEN=yes;;
-                    k)
-                        KEEP_MINUS=yes;;
                     q)
                         EINFO_QUIET=yes;;
+                    r)
+                        FORCE_REGEN=yes;;
+                    1|c)
+                        IN_COLUMN=yes;;
+                    k)
+                        KEEP_MINUS=yes;;
                     *)
                         eerror "Unknown short option: -${option_list:0:1}"
                         exit 1;;
@@ -238,7 +258,7 @@ case ${1} in
     enabled)
         execute list_enabled ${2};;
     expands)
-        echo_list "${EXPANDS}";;
+        echo_list "" "${EXPANDS}";;
     flags)
         execute list_flags ${2};;
     packages)
