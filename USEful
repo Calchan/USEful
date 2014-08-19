@@ -262,7 +262,7 @@ case ${1} in
     flags)
         execute list_flags ${2};;
     packages)
-        execute filter_expands ${2};;
+        execute filter_expands ${2} | sed 's/ $//';;
     where)
         echo "${PACKAGES}" | grep "[\" -({]${2}[\" )}%*]";;
     *)
