@@ -1,0 +1,86 @@
+= USEful(1) =
+:doctype: manpage
+
+
+== NAME ==
+
+USEful - Audit and manipulate USE and EXPAND_USE flags
+
+
+== SYNOPSIS ==
+
+*USEful* ['options'] 'command' ...
+
+
+== DESCRIPTION ==
+
+The USEful(1) command enables auditing Gentoo's USE and EXPAND_USE flags. The reason why USEful was originally written
+is to list flags enabled or disabled implicitely by either the profile or ebuild IUSE defaults. However, other features
+are available such as listing what packages have a given EXPAND_USE variable or flag, figuring out which USE flags in
+your make.conf or package.use became useless over time (which is where the name USEless came from), and more are planned
+in the future.
+
+USEful takes advantage of caching to speed up computation. Once the cache is primed, USEful is much faster than your
+average USE manipulation utility. This comes in very handy for example when initially setting up a new machine or
+updating one that hasn't been updated in a long time, which is when you need to review a lot of USE and EXPAND_USE
+flags.
+
+
+== OPTIONS ==
+
+*-1, -c, --column, --in-column*::
+    Show output one item per line only. Convenient for programmatical use.
+
+*-k, --keep, --keep--minus*::
+    Keep the minus sign in front of disabled flags. The default is to remove it, in which case, when listing both
+    enabled and disabled flags, those that would appear both enabled and disabled will only appear once without the
+    minus sign in front.
+
+*--[no-]prepend*::
+    Prepend flags (or don't) with the EXPAND_USE variable name followed by an underscore. When showing output in column
+    --prepend is the default. Otherwise the default is --no-prepend.
+
+*-q, --quiet*::
+    Suppress all informational output (errors, warning, etc...). Convenient for programmatical use.
+
+*-r, --regen, --force-regen*::
+    Force regeneration of cache.
+
+
+== COMMANDS ==
+
+*all-disabled* ['EXPAND_USE variable']::
+    List all disabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all
+    disabled flags are shown, except those masked, forced, removed or bound to FEATURES settings.
+
+*all-enabled* ['EXPAND_USE variable']::
+    List all enabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all enabled
+    flags are shown, except those masked, forced, removed or bound to FEATURES settings.
+
+
+/////////////////////////////////////////////////////////////////
+== EXIT STATUS ==
+
+*0*::
+    Success
+
+*1*::
+    Failure (syntax or usage error; configuration error; document
+    processing failure; unexpected error).
+/////////////////////////////////////////////////////////////////
+
+
+== AUTHOR ==
+
+USEful is being developped by Denis Dupeyron <calchan@gentoo.org>.
+
+
+== HOMEPAGE ==
+
+<https://github.com/Calchan/USEful>
+
+
+== COPYING ==
+
+Copyright \(C) 2014 Denis Dupeyron. Free use of this software is granted under the terms of the GNU General Public
+License version 2.0 (GPLv2).
