@@ -17,7 +17,7 @@ USEful - Audit and manipulate USE and EXPAND_USE flags
 The USEful(1) command enables auditing Gentoo's USE and EXPAND_USE flags. The reason why USEful was originally written
 is to list flags enabled or disabled implicitely by either the profile or ebuild IUSE defaults. However, other features
 are available such as listing what packages have a given EXPAND_USE variable or flag, figuring out which USE flags in
-your make.conf or package.use became useless over time (which is where the name USEless came from), and more are planned
+your make.conf or package.use became useless over time (which is where the name USEful came from), and more are planned
 in the future.
 
 USEful takes advantage of caching to speed up computation. Once the cache is primed, USEful is much faster than your
@@ -51,11 +51,31 @@ flags.
 
 *all-disabled* ['EXPAND_USE variable']::
     List all disabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all
-    disabled flags are shown, except those masked, forced, removed or bound to FEATURES settings.
+    disabled flags are shown, except those masked, forced, removed or bound to FEATURES settings. If no EXPAND_USE
+    variable is passed then the default is USE.
 
 *all-enabled* ['EXPAND_USE variable']::
     List all enabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all enabled
     flags are shown, except those masked, forced, removed or bound to FEATURES settings.
+
+*all-flags* ['EXPAND_USE variable']::
+    List all enabled and disabled flags for the EXPAND_USE variable passed as parameter. Some flags may appear both as
+    enabled and disabled meaning both states appear in @world for various possible reasons. If the `-k' option is used,
+    these flags will appear only once, without the minus sign.
+
+*all-packages*::
+    List all packages and their flags for USE and all EXPAND_USE vairables. The output format is similar to what `emerge
+    -vpe @world' would produce, albeit stripped of information not pertinent to USEful. Absolutely no filtering is done,
+    including for flags which are masked, forced, removed or bound to FEATURES settings.
+
+
+== LOOPING THROUGH ALL EXPAND_USE VARIABLES ==
+
+Most commands will accept `all' instead of an EXPAND_USE variable name. This will instruct the command to loop through
+all the possible EXPAND_USE variables, including USE, and show them as nicely as possible depending on other settings.
+
+Of all the commands which take an EXPAND_USE variable name as a parameter, this is currently not allowed for the
+`packages' command.
 
 
 /////////////////////////////////////////////////////////////////
