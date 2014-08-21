@@ -241,7 +241,7 @@ if yesno "${FORCE_REGEN}" || [[ ! -f /tmp/USEful-emerge-output ]]; then
     emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
     eend
 fi
-PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9]* KiB/\1/p' /tmp/USEful-emerge-output)
+PACKAGES=$(sed -n '/="/s/^\[[^]]*] \(.*\) [0-9,]* [A-Za-z]*/\1/p' /tmp/USEful-emerge-output)
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([A-Z0-9_]*="\)/\1/;s/\([A-Z0-9_]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
 case ${1} in
