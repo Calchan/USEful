@@ -14,7 +14,7 @@ USEful - Audit and manipulate USE and EXPAND_USE flags
 
 == DESCRIPTION ==
 
-TL;DR Only list USE flags which haven't be explicitely set by you so that you can review them. And more.
+TL;DR Show a compact and filtered list of USE flags which haven't be explicitely set by you so that you can review them. And more.
 
 The USEful(1) command enables auditing Gentoo's USE and EXPAND_USE flags. The reason why USEful was originally written
 is to list flags enabled or disabled implicitely by either the profile or ebuild IUSE defaults. However, other features
@@ -127,6 +127,39 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
 It is best your system is fully updated compared to the current on-disk state of your ebuild repositories (i.e., Portage
 tree and overlays) before running USEful. It is developped for and tested against out of date systems, but results are
 not garanteed.
+
+
+== EXAMPLES ==
+
+Show silently enabled USE flags to make sure I really want them enabled:
+
+----------------------------------------
+USEful enabled
+----------------------------------------
+
+Show silently disabled USE flags to see which ones I may need to enable:
+
+----------------------------------------
+USEful disabled
+----------------------------------------
+
+Show all VIDEO_CARDS flags, keep minus sign in front to see which are disabled:
+
+----------------------------------------
+USEful -k all-flags VIDEO_CARDS
+----------------------------------------
+
+Show all LIBREOFFICE_EXTENSIONS flags disabled by default because I bet I want those enabled:
+
+----------------------------------------
+USEful disabled LIBREOFFICE_EXTENSIONS
+----------------------------------------
+
+Show PYTHON_TARGETS not explicitely set by me:
+
+----------------------------------------
+USEful enabled PYTHON_TARGETS
+----------------------------------------
 
 
 == AUTHOR ==
