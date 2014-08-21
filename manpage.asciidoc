@@ -14,16 +14,18 @@ USEful - Audit and manipulate USE and EXPAND_USE flags
 
 == DESCRIPTION ==
 
+TL;DR Only list USE flags which haven't be explicitely set by you so that you can review them. And more.
+
 The USEful(1) command enables auditing Gentoo's USE and EXPAND_USE flags. The reason why USEful was originally written
 is to list flags enabled or disabled implicitely by either the profile or ebuild IUSE defaults. However, other features
 are available such as listing what packages have a given EXPAND_USE variable or flag, figuring out which USE flags in
-your make.conf or package.use became useless over time (which is where the name USEful came from), and more are planned
-in the future.
+your /etc/portage/make.conf or package.use became useless over time (which is where the name USEful came from), and more
+are planned in the future.
 
 USEful takes advantage of caching to speed up computation. Once the cache is primed, USEful is much faster than your
-average USE manipulation utility. This comes in very handy for example when initially setting up a new machine or
-updating one that hasn't been updated in a long time, which is when you need to review a lot of USE and EXPAND_USE
-flags.
+average USE manipulation utility. This comes in very handy, for example, when initially setting up a new machine or
+updating one that hasn't been updated in a long time. Thus is typically when you need to review a lot of USE and
+EXPAND_USE flags which state, either in the selected profile or in ebuilds, may be set to an undesirable default. 
 
 
 == OPTIONS ==
@@ -56,17 +58,48 @@ flags.
 
 *all-enabled* ['EXPAND_USE variable']::
     List all enabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all enabled
-    flags are shown, except those masked, forced, removed or bound to FEATURES settings.
+    flags are shown, except those masked, forced, removed or bound to FEATURES settings. If no EXPAND_USE variable is
+    passed then the default is USE.
 
 *all-flags* ['EXPAND_USE variable']::
     List all enabled and disabled flags for the EXPAND_USE variable passed as parameter. Some flags may appear both as
     enabled and disabled meaning both states appear in @world for various possible reasons. If the `-k' option is used,
-    these flags will appear only once, without the minus sign.
+    these flags will appear only once, without the minus sign. If no EXPAND_USE variable is passed then the default is
+    USE.
 
 *all-packages*::
-    List all packages and their flags for USE and all EXPAND_USE vairables. The output format is similar to what `emerge
+    List all packages and their flags for USE and all EXPAND_USE variables. The output format is similar to what `emerge
     -vpe @world' would produce, albeit stripped of information not pertinent to USEful. Absolutely no filtering is done,
     including for flags which are masked, forced, removed or bound to FEATURES settings.
+
+*disabled* ['EXPAND_USE variable']::
+    List all implicitely disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely disabled in
+    /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config files in /etc/USEful, will
+    not be listed. If no EXPAND_USE variable is passed then the default is USE.
+
+
+*enabled* ['EXPAND_USE variable']::
+    List all implicitely enabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely enabled in
+    /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config files in /etc/USEful, will
+    not be listed. If no EXPAND_USE variable is passed then the default is USE.
+
+*expands*::
+    List all EXPAND_USE variables.
+
+*flags* ['EXPAND_USE variable']::
+    List all implicitely enabled and disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely
+    enabled or disabled in /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config
+    files in /etc/USEful, will not be listed. If no EXPAND_USE variable is passed then the default is USE.
+
+*packages* ['EXPAND_USE variable']::
+    List all packages having the EXPAND_USE variable passed as parameter. The output format is similar to what `emerge
+    -vpe @world' would produce, albeit stripped of information not pertinent to USEful. Flags which are masked, forced,
+    removed or bound to FEATURES settings are not shown. If no EXPAND_USE variable is passed then the default is USE.
+    The `all' paramater passed instead of an EXPAND_USE variable name does not work for this command.
+
+*where* ['flag']::
+    Show in which package(s) if any the flag is present. Flags which are masked, forced, removed or bound to FEATURES
+    settings will not be shown.
 
 
 == LOOPING THROUGH ALL EXPAND_USE VARIABLES ==
@@ -88,6 +121,12 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
     Failure (syntax or usage error; configuration error; document
     processing failure; unexpected error).
 /////////////////////////////////////////////////////////////////
+
+== NOTE ==
+
+It is best your system is fully updated compared to the current on-disk state of your ebuild repositories (i.e., Portage
+tree and overlays) before running USEful. It is developped for and tested against out of date systems, but results are
+not garanteed.
 
 
 == AUTHOR ==
