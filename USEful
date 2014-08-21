@@ -5,10 +5,10 @@
 # - add expanded flags to filter list
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
+# - add colored output to where command
 # - show help when no command, add help command
 # - more exhaustive error checking
 # - more code comments
-# - doc, manpage
 
 source /lib/gentoo/functions.sh
 
