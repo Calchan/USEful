@@ -28,6 +28,39 @@ updating one that hasn't been updated in a long time. Thus is typically when you
 EXPAND_USE flags which state, either in the selected profile or in ebuilds, may be set to an undesirable default. 
 
 
+== EXAMPLES ==
+
+Show silently enabled USE flags to make sure I really want them enabled:
+
+----------------------------------------
+USEful enabled
+----------------------------------------
+
+Show silently disabled USE flags to see which ones I may need to enable:
+
+----------------------------------------
+USEful disabled
+----------------------------------------
+
+Show all VIDEO_CARDS flags, keep minus sign in front to see which are disabled:
+
+----------------------------------------
+USEful -k all-flags VIDEO_CARDS
+----------------------------------------
+
+Show all LIBREOFFICE_EXTENSIONS flags disabled by default because I bet I want those enabled:
+
+----------------------------------------
+USEful disabled LIBREOFFICE_EXTENSIONS
+----------------------------------------
+
+Show PYTHON_TARGETS not explicitely set by me:
+
+----------------------------------------
+USEful enabled PYTHON_TARGETS
+----------------------------------------
+
+
 == OPTIONS ==
 
 *-1, -c, --column, --in-column*::
@@ -127,39 +160,6 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
 It is best your system is fully updated compared to the current on-disk state of your ebuild repositories (i.e., Portage
 tree and overlays) before running USEful. It is developped for and tested against out of date systems, but results are
 not garanteed.
-
-
-== EXAMPLES ==
-
-Show silently enabled USE flags to make sure I really want them enabled:
-
-----------------------------------------
-USEful enabled
-----------------------------------------
-
-Show silently disabled USE flags to see which ones I may need to enable:
-
-----------------------------------------
-USEful disabled
-----------------------------------------
-
-Show all VIDEO_CARDS flags, keep minus sign in front to see which are disabled:
-
-----------------------------------------
-USEful -k all-flags VIDEO_CARDS
-----------------------------------------
-
-Show all LIBREOFFICE_EXTENSIONS flags disabled by default because I bet I want those enabled:
-
-----------------------------------------
-USEful disabled LIBREOFFICE_EXTENSIONS
-----------------------------------------
-
-Show PYTHON_TARGETS not explicitely set by me:
-
-----------------------------------------
-USEful enabled PYTHON_TARGETS
-----------------------------------------
 
 
 == AUTHOR ==
