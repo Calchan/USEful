@@ -42,7 +42,7 @@ Show silently disabled USE flags to see which ones I may need to enable:
 USEful disabled
 ----------------------------------------
 
-List all EXPAND_USE variables:
+List all EXPAND_USE variables in @world:
 
 ----------------------------------------
 USEful expands
@@ -54,7 +54,7 @@ Show all VIDEO_CARDS flags, keep minus sign in front to see which are disabled:
 USEful -k all-flags VIDEO_CARDS
 ----------------------------------------
 
-Now, show all packages with the VIDEO_CARDS variable:
+Now, show all packages in @world with the VIDEO_CARDS variable:
 
 ----------------------------------------
 USEful packages VIDEO_CARDS
