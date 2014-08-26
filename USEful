@@ -5,7 +5,6 @@
 # - add expanded flags to filter list
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
-# - add colored output to where command
 # - show help when no command, add help command
 # - more exhaustive error checking
 # - more code comments
@@ -264,7 +263,7 @@ case ${1} in
     packages)
         execute filter_expands ${2} | sed 's/ $//';;
     where)
-        echo "${PACKAGES}" | grep "[\" -({]${2}[\" )}%*]";;
+        echo "${PACKAGES}" | sed -ne "s/\(.*[\" ({]\)\([-]\?${2}\)\([\" )}%*].*\)/\1$(printf '\033[1;31m')\2$(printf '\033[0m')\3/p";;
     *)
         eerror "Unknown command: ${1}";;
 esac
