@@ -2,7 +2,6 @@
 
 # TODO:
 # - filter out stuff from /etc/portage/package.use
-# - add expanded flags to filter list
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
 # - show help when no command, add help command
@@ -94,9 +93,23 @@ list_all_flags() {
 # ${1}: the EXPAND_USE variable
 #
 filter_flags() {
-    local filtered makeconf_flags flag
+    local expand_prefix filtered makeconf_flags flag
+    if [[ ${1} != "USE" ]]; then
+        expand_prefix="${1,,}_"
+    fi
     filtered="$(filter_expands ${1})"
+    # Get all globally declared flags
     makeconf_flags=$(source /etc/portage/make.conf; echo "${!1}")
+    # If dealing with a USE_EXPAND variable, add expanded flags from ${USE}, i.e., those which appear in the USE
+    # variable prefixed with the lowercased name of the USE_EXPAND variable
+    if [[ ${1} != "USE" ]]; then
+        for flag in $(source /etc/portage/make.conf; echo "${USE}"); do
+            if [[ ${flag#${expand_prefix}} != ${flag} ]]; then
+                makeconf_flags+=" ${flag#${expand_prefix}}"
+            fi
+        done
+    fi
+    # Now that all declared flags are gathered, filter them
     for flag in ${makeconf_flags}; do
         filtered=$(echo "${filtered}" | sed "s/ ${flag} / /")
     done
