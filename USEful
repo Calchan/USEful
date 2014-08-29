@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TODO:
-# - filter out stuff from /etc/portage/package.use
+# - do caching so speed up package.use procesing
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
 # - show help when no command, add help command
@@ -85,6 +85,54 @@ list_all_flags() {
 }
 
 #
+# ${1}: the line from package.use or similar
+# ${2}: the package atom from the line
+# ${3}: the EXPAND_USE variable
+#
+process_package_use_line() {
+    local package package_escaped flag
+    package=$(emerge -p --nodeps "${2}" 2>/dev/null | sed -n 's/^\[[^]]*\] \([^ :]*\).*/\1/p')
+    package_escaped=${package/\//\\\/}
+    for flag in $(echo ${1} | cut -d ' ' -f 2-); do
+        if [[ ${3} != "USE" ]]; then
+            if [[ ${flag#${3,,}_} != ${flag} ]]; then
+                flag=${flag#${3,,}_}
+            else
+                flag=""
+            fi
+        fi
+        FILTERED=$(echo "${FILTERED}" | sed "/^${package_escaped}[ :]/s/ ${flag} / /")
+    done
+}
+
+#
+#
+# ${1}: the package.use or similar file to process
+# ${2}: the EXPAND_USE variable
+#
+process_package_use() {
+    local atom atom_escaped slots slot
+    while read line; do
+        if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
+            atom=$(echo ${line} | cut -d ' ' -f 1) # FIXME use expansion
+            if [[ ${atom/:/} != ${atom} ]]; then
+                process_package_use_line "${line}" ${atom} ${2}
+            else
+                atom_escaped=${atom/\//\\\/}
+                slots=$(echo "${FILTERED}" | sed -n "s/^${atom_escaped}[^:]*:\([^ ]*\).*/\1/p")
+                if [[ ${slots} == "" ]]; then
+                    process_package_use_line "${line}" ${atom} ${2}
+                else
+                    for slot in ${slots}; do
+                        process_package_use_line "${line}" "${atom}:${slot}" ${2}
+                    done
+                fi
+            fi
+        fi
+    done < ${1}
+}
+
+#
 # Filter flags in the list of visible flags for a given EXPAND_USE variable.
 # Dropped flags are those listed in:
 #  - /etc/portage/make.conf
@@ -93,28 +141,34 @@ list_all_flags() {
 # ${1}: the EXPAND_USE variable
 #
 filter_flags() {
-    local expand_prefix filtered makeconf_flags flag
+    local expand_prefix flag make_conf_flags conf_file
     if [[ ${1} != "USE" ]]; then
         expand_prefix="${1,,}_"
     fi
-    filtered="$(filter_expands ${1})"
+    FILTERED="$(filter_expands ${1})"
     # Get all globally declared flags
-    makeconf_flags=$(source /etc/portage/make.conf; echo "${!1}")
+    make_conf_flags=$(source /etc/portage/make.conf; echo "${!1}")
     # If dealing with a USE_EXPAND variable, add expanded flags from ${USE}, i.e., those which appear in the USE
     # variable prefixed with the lowercased name of the USE_EXPAND variable
     if [[ ${1} != "USE" ]]; then
         for flag in $(source /etc/portage/make.conf; echo "${USE}"); do
             if [[ ${flag#${expand_prefix}} != ${flag} ]]; then
-                makeconf_flags+=" ${flag#${expand_prefix}}"
+                make_conf_flags+=" ${flag#${expand_prefix}}"
             fi
         done
     fi
     # Now that all declared flags are gathered, filter them
-    for flag in ${makeconf_flags}; do
-        filtered=$(echo "${filtered}" | sed "s/ ${flag} / /")
+    for flag in ${make_conf_flags}; do
+        FILTERED=$(echo "${FILTERED}" | sed "s/ ${flag} / /")
     done
-    # TODO: finish filtering
-    echo "${filtered}" | cut -d " " -f 2- | tr " " "\n"
+    if [[ -f /etc/portage/package.use ]]; then
+        process_package_use "/etc/portage/package.use" ${1}
+    elif [[ -d /etc/portage/package.use ]]; then
+        for conf_file in /etc/portage/package.use/*; do
+            process_package_use ${conf_file} ${1}
+        done
+    fi
+    echo "${FILTERED}" | cut -d " " -f 2- | tr " " "\n"
 }
 
 #
