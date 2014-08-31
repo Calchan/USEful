@@ -2,17 +2,17 @@
 :doctype: manpage
 
 
-== NAME ==
+== Name ==
 
 USEful - Audit and manipulate USE and EXPAND_USE flags
 
 
-== SYNOPSIS ==
+== Synopsys ==
 
 *USEful* ['options'] 'command' ...
 
 
-== DESCRIPTION ==
+== Description ==
 
 TL;DR Show a compact and filtered list of USE flags which haven't be explicitely set by you so that you can review them. And more.
 
@@ -28,7 +28,7 @@ updating one that hasn't been updated in a long time. Thus is typically when you
 EXPAND_USE flags which state, either in the selected profile or in ebuilds, may be set to an undesirable default. 
 
 
-== EXAMPLES ==
+== Examples ==
 
 Show silently enabled USE flags to make sure I really want them enabled:
 
@@ -73,7 +73,7 @@ USEful enabled PYTHON_TARGETS
 ----------------------------------------
 
 
-== OPTIONS ==
+== Options ==
 
 *-1, -c, --column, --in-column*::
     Show output one item per line only. Convenient for programmatical use.
@@ -94,7 +94,7 @@ USEful enabled PYTHON_TARGETS
     Force regeneration of cache.
 
 
-== COMMANDS ==
+== Commands ==
 
 *all-disabled* ['EXPAND_USE variable']::
     List all disabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all
@@ -150,7 +150,7 @@ USEful enabled PYTHON_TARGETS
     settings will not be shown.
 
 
-== LOOPING THROUGH ALL EXPAND_USE VARIABLES ==
+== Looping through all EXPAND_USE variables ==
 
 Most commands will accept `all' instead of an EXPAND_USE variable name. This will instruct the command to loop through
 all the possible EXPAND_USE variables, including USE, and show them as nicely as possible depending on other settings.
@@ -170,24 +170,24 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
     processing failure; unexpected error).
 /////////////////////////////////////////////////////////////////
 
-== NOTE ==
+== Note ==
 
 It is best your system is fully updated compared to the current on-disk state of your ebuild repositories (i.e., Portage
 tree and overlays) before running USEful. It is developped for and tested against out of date systems, but results are
 not garanteed.
 
 
-== AUTHOR ==
+== Author ==
 
 USEful is being developped by Denis Dupeyron <calchan@gentoo.org>.
 
 
-== HOMEPAGE ==
+== Homepage ==
 
 <https://github.com/Calchan/USEful>
 
 
-== COPYING ==
+== Copying ==
 
 Copyright \(C) 2014 Denis Dupeyron. Free use of this software is granted under the terms of the GNU General Public
 License version 2.0 (GPLv2).
