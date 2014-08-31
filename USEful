@@ -4,7 +4,6 @@
 # - do caching so speed up package.use procesing
 # - add enable/disable/prune/sort with alphabetical sorting
 # - add config files to manually filter out stuff
-# - show help when no command, add help command
 # - more exhaustive error checking
 # - more code comments
 
@@ -253,6 +252,38 @@ execute() {
         ${1} ${2:-USE}
     fi
 }
+
+help() {
+    cat <<EOF
+USEful [options] command ...
+Options:
+    -1, -c, --column, --in-column
+    -k, --keep, --keep-minus
+    --[no-]prepend
+    -q, quiet
+    -r, --regen, --force-regen
+Commands:
+    all-disabled ['EXPAND_USE variable']
+    all-enabled ['EXPAND_USE variable']
+    all-flags ['EXPAND_USE variable']
+    all-packages
+    disabled ['EXPAND_USE variable']
+    enabled ['EXPAND_USE variable']
+    expands
+    flags ['EXPAND_USE variable']
+    packages ['EXPAND_USE variable']
+    where 'flag'
+The default EXPAND_USE name is 'USE'.
+Most commands will accept 'all' instead of an EXPAND_USE name.
+For more information see the man page.
+EOF
+}
+
+# Show help immediately if asked for it in order to avoid having ot wait for caching
+if [[ ${1} == "" ]] || [[ ${1} == "help" ]]; then
+    help
+    exit 0
+fi
 
 
 EINFO_QUIET="${EINFO_QUIET:-no}"

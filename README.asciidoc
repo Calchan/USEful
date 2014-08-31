@@ -136,13 +136,16 @@ USEful enabled PYTHON_TARGETS
     enabled or disabled in /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config
     files in /etc/USEful, will not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
+*help*::
+    Show a cheatsheet of commands and options.
+
 *packages* ['EXPAND_USE variable']::
     List all packages having the EXPAND_USE variable passed as parameter. The output format is similar to what `emerge
     -vpe @world' would produce, albeit stripped of information not pertinent to USEful. Flags which are masked, forced,
     removed or bound to FEATURES settings are not shown. If no EXPAND_USE variable is passed then the default is USE.
     The `all' paramater passed instead of an EXPAND_USE variable name does not work for this command.
 
-*where* ['flag']::
+*where* 'flag'::
     Show in which package(s) if any the flag is present. Flags which are masked, forced, removed or bound to FEATURES
     settings will not be shown.
 
