@@ -101,7 +101,10 @@ filter_flags() {
     fi
     FILTERED="$(filter_expands ${1})"
     # Get all globally declared flags
-    make_conf_flags=$(source /etc/portage/make.conf; echo "${!1}")
+    make_conf_flags=$(source /etc/portage/make.conf; echo "${!1} ")
+    if [[ -f /etc/USEful/${1} ]]; then
+        make_conf_flags+=$(cat /etc/USEful/${1})
+    fi
     # If dealing with a USE_EXPAND variable, add expanded flags from ${USE}, i.e., those which appear in the USE
     # variable prefixed with the lowercased name of the USE_EXPAND variable
     if [[ ${1} != "USE" ]]; then
