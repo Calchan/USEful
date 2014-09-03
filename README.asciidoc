@@ -14,7 +14,8 @@ USEful - Audit and manipulate USE and EXPAND_USE flags
 
 == Description ==
 
-TL;DR Show a compact and filtered list of USE flags which haven't be explicitely set by you so that you can review them. And more.
+TL;DR Show a compact and filtered list of USE flags which haven't been explicitely set by you so that you can review
+them. And more.
 
 The USEful(1) command enables auditing Gentoo's USE and EXPAND_USE flags. The reason why USEful was originally written
 is to list flags enabled or disabled implicitely by either the profile or ebuild IUSE defaults. However, other features
@@ -29,6 +30,13 @@ EXPAND_USE flags which state, either in the selected profile or in ebuilds, may 
 
 
 == Examples ==
+
+Show all implicitely set USE and EXPAND_USE flags. If this comes out empty it means all flags have been looked at,
+either enabled, disabled or ignored. This is the most important command.
+
+----------------------------------------
+USEful flags all
+----------------------------------------
 
 Show silently enabled USE flags to make sure I really want them enabled:
 
@@ -80,7 +88,7 @@ USEful enabled PYTHON_TARGETS
 
 *-k, --keep, --keep--minus*::
     Keep the minus sign in front of disabled flags. The default is to remove it, in which case, when listing both
-    enabled and disabled flags, those that would appear both enabled and disabled will only appear once without the
+    enabled and disabled flags, those which would appear both enabled and disabled will only appear once without the
     minus sign in front.
 
 *--[no-]prepend*::
@@ -119,13 +127,13 @@ USEful enabled PYTHON_TARGETS
 
 *disabled* ['EXPAND_USE variable']::
     List all implicitely disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely disabled in
-    /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config files in /etc/USEful, will
+    /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config files in /etc/USEful, will
     not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
 
 *enabled* ['EXPAND_USE variable']::
     List all implicitely enabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely enabled in
-    /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config files in /etc/USEful, will
+    /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config files in /etc/USEful, will
     not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
 *expands*::
@@ -133,7 +141,7 @@ USEful enabled PYTHON_TARGETS
 
 *flags* ['EXPAND_USE variable']::
     List all implicitely enabled and disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely
-    enabled or disabled in /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored from config
+    enabled or disabled in /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config
     files in /etc/USEful, will not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
 *help*::
@@ -159,6 +167,18 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
 `packages' command.
 
 
+== Ignoring flags ==
+
+The point of using USEful is to let you be easily able to review implicitely set flags. However, in most cases there are
+going to be a lot of them making the output of USEful overwhelming. One way around that is to explicitely set all flags,
+which is often an undesirable solution.  When you don't want to set some flags explicitely but want to mark them as
+reviewed so that they don't perpetually come back and clutter the output of USEful, you can ignore them.
+
+In order to globally ignore flags, just add them to a file in /etc/USEful named the same as the EXPAND_USE variable they
+belong to (or USE for USE flags). There can be more than one ignored flag per line, you can skip lines, and a line
+starting with the sharp sign (#) is a comment.
+
+
 /////////////////////////////////////////////////////////////////
 == EXIT STATUS ==
 
@@ -166,15 +186,14 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
     Success
 
 *1*::
-    Failure (syntax or usage error; configuration error; document
-    processing failure; unexpected error).
+    Failure (syntax or usage error; configuration error; unexpected error)
 /////////////////////////////////////////////////////////////////
+
 
 == Note ==
 
-It is best your system is fully updated compared to the current on-disk state of your ebuild repositories (i.e., Portage
-tree and overlays) before running USEful. It is developped for and tested against out of date systems, but results are
-not garanteed.
+You should update your system to the current on-disk state of your ebuild repositories (i.e., Portage tree and overlays)
+before running USEful. Otherwise results cannot be guarantied.
 
 
 == Author ==
