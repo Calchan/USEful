@@ -178,6 +178,9 @@ In order to globally ignore flags, just add them to a file in /etc/USEful named 
 belong to (or USE for USE flags). There can be more than one ignored flag per line, you can skip lines, and a line
 starting with the sharp sign (#) is a comment.
 
+To ignore a USE or EXPAND_USE flag only for a specific atom, add it to /etc/USEful/package.use. This files's name is
+not random: its syntax is exactly the same as that of /etc/portage/package.use.
+
 
 /////////////////////////////////////////////////////////////////
 == EXIT STATUS ==

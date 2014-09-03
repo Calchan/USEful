@@ -6,7 +6,6 @@
 # - repository constraints in package.use
 # - automatically detect stale cache
 # - add enable/disable/prune/sort with alphabetical sorting
-# - add config files to manually filter out stuff
 # - more exhaustive error checking
 # - more code comments
 
@@ -347,11 +346,14 @@ if yesno "${FORCE_REGEN}" || [[ ! -f /tmp/USEful-emerge-output ]]; then
     emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
     rm -f /tmp/USEful-package-use-dependencies
     if [[ -f /etc/portage/package.use ]]; then
-        cache_package_use "/etc/portage/package.use" ${1}
+        cache_package_use "/etc/portage/package.use"
     elif [[ -d /etc/portage/package.use ]]; then
         for conf_file in /etc/portage/package.use/*; do
-            cache_package_use ${conf_file} ${1}
+            cache_package_use ${conf_file}
         done
+    fi
+    if [[ -f /etc/USEful/package.use ]]; then
+        cache_package_use "/etc/USEful/package.use"
     fi
     eend
 fi
