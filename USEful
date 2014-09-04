@@ -1,18 +1,9 @@
 #!/bin/bash
 
-# TODO:
-# - option for listing only global or local flags
-# - wildcards in package.use?
-# - repository constraints in package.use
-# - automatically detect stale cache
-# - add enable/disable/prune/sort with alphabetical sorting
-# - more exhaustive error checking
-# - more code comments
-
 source /lib/gentoo/functions.sh
 
 #
-# Verify the EXPAND_USE name is valid, i.e. in the EXPANDS list
+# Verify the EXPAND_USE name is valid, i.e. in the EXPANDS list.
 # $1: the USE_EXPAND to verify
 #
 check_expand() {
@@ -26,11 +17,13 @@ check_expand() {
 # listing on a single line, and to yes when listing in column.
 #
 prepend_or_not() {
+    # Default is to prepend for column output, otherwise no.
     if yesno ${IN_COLUMN}; then
         PREPEND_EXPAND=${PREPEND_EXPAND:-yes}
     else
         PREPEND_EXPAND=${PREPEND_EXPAND:-no}
     fi
+    # Prepend the USE_EXPAND variable if desired, but not USE.
     if yesno ${PREPEND_EXPAND} && [[ ${1} != "USE" ]] && [[ ${1} != "" ]]; then
         echo -n "${2}" | sed "s/^\(-\?\)/\1${1,,}_/"
     else
@@ -44,10 +37,13 @@ prepend_or_not() {
 #
 echo_list() {
     local list="${2}"
+    # Remove minus signs everywhere if desired.
     if ! yesno ${KEEP_MINUS}; then
         list=$(echo "${list}" | sed 's/^-//')
     fi
+    # Sort, remove duplicates and empty lines.
     list=$(echo "${list}" | sort -u | grep -v '^$')
+    # And now output list either in column or on a line.
     if yesno ${IN_COLUMN}; then
         prepend_or_not "${1}" "${list}"
     else
@@ -90,22 +86,24 @@ list_all_flags() {
 # Dropped flags are those listed in:
 #  - /etc/portage/make.conf
 #  - /etc/portage/package.use
-#  - TODO: complete that list
 # ${1}: the EXPAND_USE variable
 #
 filter_flags() {
     local expand_prefix flag make_conf_flags conf_file packages package package_escaped
+    # If needed, set the USE_EXPAND prefix and convert it to lowercase.
     if [[ ${1} != "USE" ]]; then
         expand_prefix="${1,,}_"
     fi
+    # Get initial list of packages with only flags for the EXPAND_USE variable.
     FILTERED="$(filter_expands ${1})"
-    # Get all globally declared flags
+    # Get all globally declared flags from /etc/portage/make.conf.
     make_conf_flags=$(source /etc/portage/make.conf; echo "${!1} ")
     if [[ -f /etc/USEful/${1} ]]; then
         make_conf_flags+=$(cat /etc/USEful/${1})
     fi
-    # If dealing with a USE_EXPAND variable, add expanded flags from ${USE}, i.e., those which appear in the USE
-    # variable prefixed with the lowercased name of the USE_EXPAND variable
+    # If dealing with a USE_EXPAND variable, add expanded flags from the USE variable in /etc/portage/make.conf, i.e.,
+    # those which appear in the USE variable prefixed with the lowercased name of the USE_EXPAND variable. Strip the
+    # prefix.
     if [[ ${1} != "USE" ]]; then
         for flag in $(source /etc/portage/make.conf; echo "${USE}"); do
             if [[ ${flag#${expand_prefix}} != ${flag} ]]; then
@@ -113,28 +111,37 @@ filter_flags() {
             fi
         done
     fi
-    # Now that all declared flags are gathered, filter them
+    # Now that all declared flags are gathered, filter them, remove them from the list of flags displayed at the end.
     for flag in ${make_conf_flags}; do
         FILTERED=$(echo "${FILTERED}" | sed "s/ ${flag} / /")
     done
+    # Filter flags from the pre-processed and cached /etc/portage/package.use and /etc/USEful/package.use
     while read line; do
+        # In each line of the cache file, get the list of packages matching each DEPEND atom.
         packages=$(echo ${line} | sed 's/^[^ ]* \(.*\) |.*/\1/')
         if [[ ${packages} != '' ]]; then
             for package in ${packages}; do
+                # Loop through each matching package. Slashed in the package name must be escaped for the final sed.
                 package_escaped=${package/\//\\\/}
                 for flag in $(echo ${line} | cut -d '|' -f 2); do
                     if [[ ${1} != "USE" ]]; then
+                        # Does the package have this flag?
                         if [[ ${flag/${1,,}_/} != ${flag} ]]; then
+                            # Yes, keep the flag but strip the prefix.
                             flag=${flag/${1,,}_/}
                         else
+                            # No, remove the flag.
                             flag=""
                         fi
                     fi
+                    # Delete the flag (or nothing if removed above) from the list of displayed flags for this particular
+                    # package only.
                     FILTERED=$(echo "${FILTERED}" | sed "/^${package_escaped}[ :]/s/ ${flag} / /")
                 done
             done
         fi
     done < /tmp/USEful-package-use-dependencies
+    # Finally remove the package names from the final list of flags. They're no longer needed.
     echo "${FILTERED}" | cut -d " " -f 2- | tr " " "\n"
 }
 
@@ -195,7 +202,7 @@ list_disabled() {
 #
 # Execute an arbitrary function using an EXPAND_USE variable as its first parameter. The EXPAND_USE variable is first
 # checked for validity and replaced by USE if empty. If "all" is passed instead of the name of an EXPAND_USE variable,
-# then list flags for all variables, except whe nit would become messy.
+# then list flags for all variables, except when it would become messy.
 # $1: the function to execute
 # $2: the EXPAND_USE variable
 #
@@ -219,6 +226,58 @@ execute() {
         check_expand ${2:-USE}
         ${1} ${2:-USE}
     fi
+}
+
+#
+# Figure out which package matches a given atom in package.use.
+# ${1}: the DEPEND atom from the line
+#
+cache_package_use_line() {
+    local package
+    # There has to be a better way than using emerge for that. For now, it'll do.
+    package=$(emerge -p --nodeps "${1}" 2>/dev/null | sed -n 's/^\[[^]]*\] \([^ :]*\).*/\1/p')
+    if [[ ${package} != "" ]]; then
+        echo -n " ${package}" >> /tmp/USEful-package-use-dependencies
+    fi
+}
+
+#
+# Cache dependencies of atoms in /etc/portage/package.use and /etc/USEful/package.use.
+# ${1}: the package.use or similar file to process
+# ${2}: the EXPAND_USE variable
+#
+cache_package_use() {
+    local atom atom_escaped slots slot
+    while read line; do
+        # Only process non-empty lines not starting with a sharp sign.
+        if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
+            atom=$(echo ${line} | cut -d ' ' -f 1) # FIXME use expansion
+            echo -n ${atom} >> /tmp/USEful-package-use-dependencies
+            if [[ ${atom/:/} != ${atom} ]]; then
+                # If the atom is for a specific slot, then it's the easy case. We only need to look for packages
+                # matching this particular slot.
+                cache_package_use_line ${atom}
+            else
+                # If no slot is specified, then we need to look-up in the cached emerge output what slots are pulled
+                # into @world.
+                atom_escaped=$(echo ${atom} | sed 's/^[<>=]*//;s/\//\\\//;s/_\(alpha\|beta\|pre\|rc\)[0-9]*//;s/-[0-9.]\+[a-z]\?//;s/-r[0-9]*$//')
+                slots=$(sed -n "s/_\(alpha\|beta\|pre\|rc\)[0-9]*//g;s/-r[0-9]*\([: ]\)/\1/g;s/^\[ebuild[^]]*\] ${atom_escaped}-[0-9.]*:\([^ ]*\).*/\1/p" /tmp/USEful-emerge-output)
+                if [[ ${slots} == "" ]]; then
+                    # No slot came back. Process the line as a slot-less atom out of precaution.
+                    # FIXME needed?
+                    cache_package_use_line ${atom}
+                else
+                    for slot in ${slots}; do
+                        # Process the line for each slot, one by one.
+                        cache_package_use_line "${atom}:${slot}"
+                    done
+                fi
+            fi
+            # Build the cache entry like this:
+            # atom [package1] [package2] ... | flags
+            echo " |" $(echo ${line} | cut -d " " -f 2-) >> /tmp/USEful-package-use-dependencies
+        fi
+    done < ${1}
 }
 
 help() {
@@ -247,18 +306,22 @@ For more information see the man page.
 EOF
 }
 
-# Show help immediately if asked for it in order to avoid having ot wait for caching
+
+# Script starts here.
+
+# Show help immediately if asked for it in order to avoid having to wait for caching.
 if [[ ${1} == "" ]] || [[ ${1} == "help" ]]; then
     help
     exit 0
 fi
 
-
+# Variable defaults. These can be passed from the environment.
 EINFO_QUIET="${EINFO_QUIET:-no}"
 FORCE_REGEN="${FORCE_REGEN:-no}"
 IN_COLUMN="${IN_COLUMN:-no}"
 KEEP_MINUS="${KEEP_MINUS:-no}"
 
+# Process command line options.
 while [[ ${1:0:1} == "-" ]]; do
     case ${1} in
         --quiet)
@@ -301,46 +364,7 @@ while [[ ${1:0:1} == "-" ]]; do
     shift
 done
 
-#
-# ${1}: the package atom from the line
-#
-cache_package_use_line() {
-    local package
-    package=$(emerge -p --nodeps "${1}" 2>/dev/null | sed -n 's/^\[[^]]*\] \([^ :]*\).*/\1/p')
-    if [[ ${package} != "" ]]; then
-        echo -n " ${package}" >> /tmp/USEful-package-use-dependencies 
-    fi
-}
-
-#
-#
-# ${1}: the package.use or similar file to process
-# ${2}: the EXPAND_USE variable
-#
-cache_package_use() {
-    local atom atom_escaped slots slot
-    while read line; do
-        if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
-            atom=$(echo ${line} | cut -d ' ' -f 1) # FIXME use expansion
-            echo -n ${atom} >> /tmp/USEful-package-use-dependencies 
-            if [[ ${atom/:/} != ${atom} ]]; then
-                cache_package_use_line ${atom}
-            else
-                atom_escaped=$(echo ${atom} | sed 's/^[<>=]*//;s/\//\\\//;s/_\(alpha\|beta\|pre\|rc\)[0-9]*//;s/-[0-9.]\+[a-z]\?//;s/-r[0-9]*$//')
-                slots=$(sed -n "s/_\(alpha\|beta\|pre\|rc\)[0-9]*//g;s/-r[0-9]*\([: ]\)/\1/g;s/^\[ebuild[^]]*\] ${atom_escaped}-[0-9.]*:\([^ ]*\).*/\1/p" /tmp/USEful-emerge-output)
-                if [[ ${slots} == "" ]]; then
-                    cache_package_use_line ${atom}
-                else
-                    for slot in ${slots}; do
-                        cache_package_use_line "${atom}:${slot}"
-                    done
-                fi
-            fi
-            echo " |" $(echo ${line} | cut -d " " -f 2-) >> /tmp/USEful-package-use-dependencies
-        fi
-    done < ${1}
-}
-
+# Create cache if it does not exist yet, or if forced.
 if yesno "${FORCE_REGEN}" || [[ ! -f /tmp/USEful-emerge-output ]]; then
     ebegin "Caching @world"
     emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
@@ -360,6 +384,7 @@ fi
 PACKAGES=$(sed -n '/^\[ebuild.*="/s/^\[[^]]*] \(.*\) [0-9,]* [A-Za-z]*/\1/p' /tmp/USEful-emerge-output)
 EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([^=]*="\)/\1/;s/\([^=]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
 
+# Process commands
 case ${1} in
     all-disabled)
         execute list_all_disabled ${2};;
