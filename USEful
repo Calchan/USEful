@@ -126,7 +126,7 @@ filter_flags() {
         if [[ ${packages} != '' ]]; then
             for package in ${packages}; do
                 # Loop through each matching package. Slashed in the package name must be escaped for the final sed.
-                package_escaped=${package/\//\\\/}
+                package_escaped=${package//\//\\\/}
                 for flag in $(echo ${line} | cut -d '|' -f 2); do
                     if [[ ${1} != "USE" ]]; then
                         # Does the package have this flag?
@@ -204,6 +204,24 @@ list_disabled() {
 }
 
 #
+# Find in which package(s) a specific flag appears in USE or an EXPAND_USE variable.
+# ${1}: the flag
+# ${2}: the EXPAND_USE variable
+#
+list_where() {
+    local packages package package_escaped
+    if yesno ${KEEP_MINUS}; then
+        packages=$(filter_expands ${2:-USE} | sed -n "s/\([^ ]*\).* ${1} .*/\1/p")
+    else
+        packages=$(filter_expands ${2:-USE} | sed -n "s/\([^ ]*\).* [-]\?${1#-} .*/\1/p")
+    fi
+    for package in ${packages}; do
+        package_escaped=${package//\//\\\/}
+        echo "${PACKAGES}" | sed -n "s/^\(${package_escaped}.* ${2:-USE}=.*[\" ]\)\([-]\?${1#-}\)\([\" ].*\)/\1$(printf '\033[1;31m')\2$(printf '\033[0m')\3/p"
+    done
+}
+
+#
 # Execute an arbitrary function using an EXPAND_USE variable as its first parameter. The EXPAND_USE variable is first
 # checked for validity and replaced by USE if empty. If "all" is passed instead of the name of an EXPAND_USE variable,
 # then list flags for all variables, except when it would become messy.
@@ -264,7 +282,7 @@ cache_package_use() {
             else
                 # If no slot is specified, then we need to look-up in the cached emerge output what slots are pulled
                 # into @world.
-                atom_escaped=$(echo ${atom} | sed 's/^[<>=]*//;s/\//\\\//;s/_\(alpha\|beta\|pre\|rc\)[0-9]*//;s/-[0-9.]\+[a-z]\?//;s/-r[0-9]*$//')
+                atom_escaped=$(echo ${atom} | sed 's/^[<>=]*//;s/\//\\\//g;s/_\(alpha\|beta\|pre\|rc\)[0-9]*//;s/-[0-9.]\+[a-z]\?//;s/-r[0-9]*$//')
                 slots=$(sed -n "s/_\(alpha\|beta\|pre\|rc\)[0-9]*//g;s/-r[0-9]*\([: ]\)/\1/g;s/^\[ebuild[^]]*\] ${atom_escaped}-[0-9.]*:\([^ ]*\).*/\1/p" /tmp/USEful-emerge-output)
                 if [[ ${slots} == "" ]]; then
                     # No slot came back. Process the line as a slot-less atom out of precaution.
@@ -409,7 +427,7 @@ case ${1} in
     packages)
         execute filter_expands ${2} | sed 's/ $//';;
     where)
-        echo "${PACKAGES}" | sed -ne "s/\(.*[\" ]\)\([-]\?${2}\)\([\" %*].*\)/\1$(printf '\033[1;31m')\2$(printf '\033[0m')\3/p";;
+        list_where ${2} ${3};;
     *)
         eerror "Unknown command: ${1}";;
 esac

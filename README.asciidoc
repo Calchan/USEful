@@ -56,7 +56,7 @@ List all EXPAND_USE variables in @world:
 USEful expands
 ----------------------------------------
 
-Show all VIDEO_CARDS flags, keep minus sign in front to see which are disabled:
+Show all VIDEO_CARDS flags, keep minus symbol in front to see which are disabled:
 
 ----------------------------------------
 USEful -k all-flags VIDEO_CARDS
@@ -87,9 +87,9 @@ USEful enabled PYTHON_TARGETS
     Show output one item per line only. Convenient for programmatical use.
 
 *-k, --keep, --keep--minus*::
-    Keep the minus sign in front of disabled flags. The default is to remove it, in which case, when listing both
+    Keep the minus symbol in front of disabled flags. The default is to remove it, in which case, when listing both
     enabled and disabled flags, those which would appear both enabled and disabled will only appear once without the
-    minus sign in front.
+    minus symbol in front.
 
 *--[no-]prepend*::
     Prepend flags (or don't) with the EXPAND_USE variable name followed by an underscore. When showing output in column
@@ -117,7 +117,7 @@ USEful enabled PYTHON_TARGETS
 *all-flags* ['EXPAND_USE variable']::
     List all enabled and disabled flags for the EXPAND_USE variable passed as parameter. Some flags may appear both as
     enabled and disabled meaning both states appear in @world for various possible reasons. If the `-k' option is used,
-    these flags will appear only once, without the minus sign. If no EXPAND_USE variable is passed then the default is
+    these flags will appear only once, without the minus symbol. If no EXPAND_USE variable is passed then the default is
     USE.
 
 *all-packages*::
@@ -153,9 +153,14 @@ USEful enabled PYTHON_TARGETS
     removed or bound to FEATURES settings are not shown. If no EXPAND_USE variable is passed then the default is USE.
     The `all' paramater passed instead of an EXPAND_USE variable name does not work for this command.
 
-*where* 'flag'::
+*where* 'flag' ['EXPAND_USE variable']::
     Show in which package(s) if any the flag is present. Flags which are masked, forced, removed or bound to FEATURES
-    settings will not be shown.
+    settings will not be shown. If no EXPAND_USE variable is passed then the default is USE.  If the `-k' option is
+    used, then the exact value passed as `flag' is searched for, including a possible minus symbol in front. This
+    enables to not only search for a flag but also for its enabled or disabled state. Without the `-k' option both
+    enabled and disabled occurrences of the flag will be shown. Note that in this case if `flag' starts with a minus
+    symbol then it is stripped. The `all' paramater passed instead of an EXPAND_USE variable name does not work for this
+    command.
 
 
 == Looping through all EXPAND_USE variables ==
@@ -164,7 +169,7 @@ Most commands will accept `all' instead of an EXPAND_USE variable name. This wil
 all the possible EXPAND_USE variables, including USE, and show them as nicely as possible depending on other settings.
 
 Of all the commands which take an EXPAND_USE variable name as a parameter, this is currently not allowed for the
-`packages' command.
+`packages' and `where' command.
 
 
 == Ignoring flags ==
