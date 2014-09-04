@@ -99,7 +99,11 @@ filter_flags() {
     # Get all globally declared flags from /etc/portage/make.conf.
     make_conf_flags=$(source /etc/portage/make.conf; echo "${!1} ")
     if [[ -f /etc/USEful/${1} ]]; then
-        make_conf_flags+=$(cat /etc/USEful/${1})
+        while read line; do
+            if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
+                make_conf_flags+=${line}
+            fi
+        done < /etc/USEful/${1}
     fi
     # If dealing with a USE_EXPAND variable, add expanded flags from the USE variable in /etc/portage/make.conf, i.e.,
     # those which appear in the USE variable prefixed with the lowercased name of the USE_EXPAND variable. Strip the
