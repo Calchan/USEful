@@ -201,7 +201,7 @@ not random: its syntax is exactly the same as that of /etc/portage/package.use.
 == Notes ==
 
 You should update your system to the current on-disk state of your ebuild repositories (i.e., Portage tree and overlays)
-before running USEful. Otherwise results cannot be guarantied.
+before running USEful. Otherwise results cannot be guaranteed.
 
 Not implemented yet (i.e., TODO list):
 
