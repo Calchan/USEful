@@ -390,7 +390,7 @@ done
 if yesno "${FORCE_REGEN}" || [[ ! -f /tmp/USEful-emerge-output ]]; then
     ebegin "Caching @world"
     emerge -vpe @world > /tmp/USEful-emerge-output 2>&1
-    rm -f /tmp/USEful-package-use-dependencies
+    echo > /tmp/USEful-package-use-dependencies
     if [[ -f /etc/portage/package.use ]]; then
         cache_package_use "/etc/portage/package.use"
     elif [[ -d /etc/portage/package.use ]]; then
