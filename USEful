@@ -98,10 +98,11 @@ filter_flags() {
     FILTERED="$(filter_expands ${1})"
     # Get all globally declared flags from /etc/portage/make.conf.
     make_conf_flags=$(source /etc/portage/make.conf; echo "${!1} ")
+    # Add flags from the corresponding ignore file in /etc/USEful
     if [[ -f /etc/USEful/${1} ]]; then
         while read line; do
-            if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
-                make_conf_flags+=${line}
+            if [[ "${line:0:1}" != "#" ]]; then
+                make_conf_flags+="${line} "
             fi
         done < /etc/USEful/${1}
     fi
