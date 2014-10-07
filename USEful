@@ -257,8 +257,7 @@ execute() {
 #
 cache_package_use_line() {
     local package
-    # There has to be a better way than using emerge for that. For now, it'll do.
-    package=$(emerge -p --nodeps "${1}" 2>/dev/null | sed -n 's/^\[[^]]*\] \([^ :]*\).*/\1/p')
+    package=$(portageq best_visible / "${1}")
     if [[ ${package} != "" ]]; then
         echo -n " ${package}" >> /tmp/USEful-package-use-dependencies
     fi
