@@ -104,56 +104,56 @@ USEful enabled PYTHON_TARGETS
 
 == Commands ==
 
-*all-disabled* ['EXPAND_USE variable']::
+*ad, all-disabled* ['EXPAND_USE variable']::
     List all disabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all
     disabled flags are shown, except those masked, forced, removed or bound to FEATURES settings. If no EXPAND_USE
     variable is passed then the default is USE.
 
-*all-enabled* ['EXPAND_USE variable']::
+*ae, all-enabled* ['EXPAND_USE variable']::
     List all enabled flags for the EXPAND_USE variable passed as parameter. No filtering is performed, thus all enabled
     flags are shown, except those masked, forced, removed or bound to FEATURES settings. If no EXPAND_USE variable is
     passed then the default is USE.
 
-*all-flags* ['EXPAND_USE variable']::
+*af, all-flags* ['EXPAND_USE variable']::
     List all enabled and disabled flags for the EXPAND_USE variable passed as parameter. Some flags may appear both as
     enabled and disabled meaning both states appear in @world for various possible reasons. If the `-k' option is used,
     these flags will appear only once, without the minus symbol. If no EXPAND_USE variable is passed then the default is
     USE.
 
-*all-packages*::
+*ap, all-packages*::
     List all packages and their flags for USE and all EXPAND_USE variables. The output format is similar to what `emerge
     -vpe @world' would produce, albeit stripped of information not pertinent to USEful. Absolutely no filtering is done,
     including for flags which are masked, forced, removed or bound to FEATURES settings.
 
-*disabled* ['EXPAND_USE variable']::
+*d, disabled* ['EXPAND_USE variable']::
     List all implicitely disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitly disabled in
     /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config files in /etc/USEful, will
     not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
 
-*enabled* ['EXPAND_USE variable']::
+*e, enabled* ['EXPAND_USE variable']::
     List all implicitely enabled flags for the EXPAND_USE variable passed as parameter. Flags explicitly enabled in
     /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config files in /etc/USEful, will
     not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
-*expands*::
+*x, expands*::
     List all EXPAND_USE variables.
 
-*flags* ['EXPAND_USE variable']::
+*f, flags* ['EXPAND_USE variable']::
     List all implicitely enabled and disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitly
     enabled or disabled in /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config
     files in /etc/USEful, will not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
-*help*::
+*h, help*::
     Show a cheatsheet of commands and options.
 
-*packages* ['EXPAND_USE variable']::
+*p, packages* ['EXPAND_USE variable']::
     List all packages having the EXPAND_USE variable passed as parameter. The output format is similar to what `emerge
     -vpe @world' would produce, albeit stripped of information not pertinent to USEful. Flags which are masked, forced,
     removed or bound to FEATURES settings are not shown. If no EXPAND_USE variable is passed then the default is USE.
     The `all' paramater passed instead of an EXPAND_USE variable name does not work for this command.
 
-*where* 'flag' ['EXPAND_USE variable']::
+*w, where* 'flag' ['EXPAND_USE variable']::
     Show in which package(s) if any the flag is present. Flags which are masked, forced, removed or bound to FEATURES
     settings will not be shown. If no EXPAND_USE variable is passed then the default is USE.  If the `-k' option is
     used, then the exact value passed as `flag' is searched for, including a possible minus symbol in front. This

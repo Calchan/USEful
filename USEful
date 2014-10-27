@@ -312,16 +312,16 @@ Options:
     -q, quiet
     -r, --regen, --force-regen
 Commands:
-    all-disabled ['EXPAND_USE variable']
-    all-enabled ['EXPAND_USE variable']
-    all-flags ['EXPAND_USE variable']
-    all-packages
-    disabled ['EXPAND_USE variable']
-    enabled ['EXPAND_USE variable']
-    expands
-    flags ['EXPAND_USE variable']
-    packages ['EXPAND_USE variable']
-    where 'flag'
+    ad, all-disabled ['EXPAND_USE variable']
+    ae, all-enabled ['EXPAND_USE variable']
+    af, all-flags ['EXPAND_USE variable']
+    ap, all-packages
+    d, disabled ['EXPAND_USE variable']
+    e, enabled ['EXPAND_USE variable']
+    x, expands
+    f, flags ['EXPAND_USE variable']
+    p, packages ['EXPAND_USE variable']
+    w, where 'flag'
 The default EXPAND_USE name is 'USE'.
 Most commands will accept 'all' instead of an EXPAND_USE name.
 For more information see the man page.
@@ -332,7 +332,7 @@ EOF
 # Script starts here.
 
 # Show help immediately if asked for it in order to avoid having to wait for caching.
-if [[ ${1} == "" ]] || [[ ${1} == "help" ]]; then
+if [[ ${1} == "" ]] || [[ ${1} == "h" ]] || [[ ${1} == "help" ]]; then
     help
     exit 0
 fi
@@ -408,25 +408,25 @@ EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([^=]*="\)/\1/;s/\([^=]*\)="[^"
 
 # Process commands
 case ${1} in
-    all-disabled)
+    ad|all-disabled)
         execute list_all_disabled ${2};;
-    all-enabled)
+    ae|all-enabled)
         execute list_all_enabled ${2};;
-    all-flags)
+    af|all-flags)
         execute list_all_flags ${2};;
-    all-packages)
+    ap|all-packages)
         echo "${PACKAGES}";;
-    disabled)
+    d|disabled)
         execute list_disabled ${2};;
-    enabled)
+    e|enabled)
         execute list_enabled ${2};;
-    expands)
+    x|expands)
         echo_list "" "${EXPANDS}";;
-    flags)
+    f|flags)
         execute list_flags ${2};;
-    packages)
+    p|packages)
         execute filter_expands ${2} | sed 's/ $//';;
-    where)
+    w|where)
         list_where ${2} ${3};;
     *)
         eerror "Unknown command: ${1}";;
