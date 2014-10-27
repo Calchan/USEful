@@ -14,7 +14,7 @@ USEful - Audit and manipulate USE and EXPAND_USE flags
 
 == Description ==
 
-TL;DR Show a compact and filtered list of USE flags which haven't been explicitely set by you so that you can review
+TL;DR Show a compact and filtered list of USE flags which haven't been explicitly set by you so that you can review
 them. And more.
 
 The USEful(1) command enables auditing Gentoo's USE and EXPAND_USE flags. The reason why USEful was originally written
@@ -74,7 +74,7 @@ Show all LIBREOFFICE_EXTENSIONS flags disabled by default because I bet I want t
 USEful disabled LIBREOFFICE_EXTENSIONS
 ----------------------------------------
 
-Show PYTHON_TARGETS not explicitely set by me:
+Show PYTHON_TARGETS not explicitly set by me:
 
 ----------------------------------------
 USEful enabled PYTHON_TARGETS
@@ -126,13 +126,13 @@ USEful enabled PYTHON_TARGETS
     including for flags which are masked, forced, removed or bound to FEATURES settings.
 
 *disabled* ['EXPAND_USE variable']::
-    List all implicitely disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely disabled in
+    List all implicitely disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitly disabled in
     /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config files in /etc/USEful, will
     not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
 
 *enabled* ['EXPAND_USE variable']::
-    List all implicitely enabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely enabled in
+    List all implicitely enabled flags for the EXPAND_USE variable passed as parameter. Flags explicitly enabled in
     /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config files in /etc/USEful, will
     not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
@@ -140,7 +140,7 @@ USEful enabled PYTHON_TARGETS
     List all EXPAND_USE variables.
 
 *flags* ['EXPAND_USE variable']::
-    List all implicitely enabled and disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitely
+    List all implicitely enabled and disabled flags for the EXPAND_USE variable passed as parameter. Flags explicitly
     enabled or disabled in /etc/portage/make.conf or /etc/portage/package.use, as well as flags ignored using config
     files in /etc/USEful, will not be listed. If no EXPAND_USE variable is passed then the default is USE.
 
@@ -175,9 +175,13 @@ Of all the commands which take an EXPAND_USE variable name as a parameter, this 
 == Ignoring flags ==
 
 The point of using USEful is to let you be easily able to review implicitely set flags. However, in most cases there are
-going to be a lot of them making the output of USEful overwhelming. One way around that is to explicitely set all flags,
-which is often an undesirable solution.  When you don't want to set some flags explicitely but want to mark them as
+going to be a lot of them making the output of USEful overwhelming. One way around that is to explicitly set all flags,
+which is often an undesirable solution.  When you don't want to set some flags explicitly but want to mark them as
 reviewed so that they don't perpetually come back and clutter the output of USEful, you can ignore them.
+
+If you want to ignore an implicitly disabled flag you need to add a minus symbol on front of it. You can either ignore
+the enabled or disabled flag, or both of them. In this latter case you need to list it twice, both with and without the
+minus symbol.
 
 In order to globally ignore flags, just add them to a file in /etc/USEful named the same as the EXPAND_USE variable they
 belong to (or USE for USE flags). There can be more than one ignored flag per line, you can skip lines, and a line
