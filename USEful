@@ -58,7 +58,7 @@ echo_list() {
 # In the list of packages with their flags, only keep those packages having the EXPAND_USE variable being dealt with,
 # and only keep the corresponding flags. All flags for other EXPAND_USE variables and packages without this particular
 # EXPAND_USE variable are dropped.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 filter_expands() {
     echo "${PACKAGES}" | sed -ne "/ ${1}/s/^\([^ ]*\).* ${1}=\"\([^\"]*\).*/\1 \2 /p" | \
@@ -67,7 +67,7 @@ filter_expands() {
 
 #
 # Find all visible flags for a given EXPAND_USE variable.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 all_flags() {
     echo "$(filter_expands ${1} | cut -d ' ' -f 2- | tr ' ' '\n')"
@@ -75,7 +75,7 @@ all_flags() {
 
 #
 # Output all visible flags for a given EXPAND_USE variable.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 list_all_flags() {
     echo_list ${1} "$(all_flags ${1})"
@@ -86,7 +86,7 @@ list_all_flags() {
 # Dropped flags are those listed in:
 #  - /etc/portage/make.conf
 #  - /etc/portage/package.use
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 filter_flags() {
     local expand_prefix flag make_conf_flags conf_file packages package package_escaped
@@ -126,7 +126,7 @@ filter_flags() {
         packages=$(echo ${line} | sed 's/^[^ ]* \(.*\) |.*/\1/')
         if [[ ${packages} != '' ]]; then
             for package in ${packages}; do
-                # Loop through each matching package. Slashed in the package name must be escaped for the final sed.
+                # Loop through each matching package. Slashes in the package name must be escaped for the final sed.
                 package_escaped=${package//\//\\\/}
                 for flag in $(echo ${line} | cut -d '|' -f 2); do
                     if [[ ${1} != "USE" ]]; then
@@ -152,7 +152,7 @@ filter_flags() {
 
 #
 # Output all visible flags for a given EXPAND_USE variable, filtered with filter_flags().
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 list_flags() {
     echo_list ${1} "$(filter_flags ${1})"
@@ -174,7 +174,7 @@ disabled() {
 
 #
 # Output all enabled flags for a given EXPAND_USE, explicitely enabled by the user or not.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 list_all_enabled() {
     echo_list ${1} "$(all_flags ${1} | enabled)"
@@ -182,7 +182,7 @@ list_all_enabled() {
 
 #
 # Output all disabled flags for a given EXPAND_USE, explicitely disabled by the user or not.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 list_all_disabled() {
     echo_list ${1} "$(all_flags ${1} | disabled)"
@@ -190,7 +190,7 @@ list_all_disabled() {
 
 #
 # Output all flags for a given EXPAND_USE which are not explicitely enabled and could need to be looked at.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 list_enabled() {
     echo_list ${1} "$(filter_flags ${1} | enabled)"
@@ -198,7 +198,7 @@ list_enabled() {
 
 #
 # Output all flags for a given EXPAND_USE which are not explicitely disabled and could need to be looked at.
-# ${1}: the EXPAND_USE variable
+# $1: the EXPAND_USE variable
 #
 list_disabled() {
     echo_list ${1} "$(filter_flags ${1} | disabled)"
@@ -206,8 +206,8 @@ list_disabled() {
 
 #
 # Find in which package(s) a specific flag appears in USE or an EXPAND_USE variable.
-# ${1}: the flag
-# ${2}: the EXPAND_USE variable
+# $1: the flag
+# $2: the EXPAND_USE variable
 #
 list_where() {
     local packages package package_escaped
@@ -253,7 +253,7 @@ execute() {
 
 #
 # Figure out which package matches a given atom in package.use.
-# ${1}: the DEPEND atom from the line
+# $1: the DEPEND atom from the line
 #
 cache_package_use_line() {
     local package
@@ -265,8 +265,8 @@ cache_package_use_line() {
 
 #
 # Cache dependencies of atoms in /etc/portage/package.use and /etc/USEful/package.use.
-# ${1}: the package.use or similar file to process
-# ${2}: the EXPAND_USE variable
+# $1: the package.use or similar file to process
+# $2: the EXPAND_USE variable
 #
 cache_package_use() {
     local atom atom_escaped slots slot
