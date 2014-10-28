@@ -271,7 +271,7 @@ cache_package_use_line() {
 cache_package_use() {
     local atom atom_escaped slots slot
     while read line; do
-        # Only process non-empty lines not starting with a sharp sign.
+        # Only process non-empty lines not starting with a pound sign.
         if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
             atom=$(echo ${line} | cut -d ' ' -f 1) # FIXME use expansion
             echo -n ${atom} >> /tmp/USEful-package-use-dependencies
