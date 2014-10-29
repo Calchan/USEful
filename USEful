@@ -404,7 +404,7 @@ if yesno "${FORCE_REGEN}" || [[ ! -f /tmp/USEful-emerge-output ]]; then
     eend
 fi
 PACKAGES=$(sed -n '/^\[ebuild.*="/s/^\[[^]]*] \(.*\) [0-9,]* [A-Za-z]*/\1/p' /tmp/USEful-emerge-output)
-EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([^=]*="\)/\1/;s/\([^=]*\)="[^"]*"/\1/g;s/ /\n/gp' | sort -u)
+EXPANDS=$(echo "${PACKAGES}" | sed -n 's/^[^=]* \([^=]*="\)/\1/;s/\([^=]*\)="[^"]*"/\1 /g;s/ /\n/gp' | sort -u)
 
 # Process commands
 case ${1} in
