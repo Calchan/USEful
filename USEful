@@ -3,6 +3,47 @@
 source /lib/gentoo/functions.sh
 
 #
+# Strip dependency atom to only keep category/package. Use this with a pipe.
+#
+keep_cat_pkg() {
+    # The sed command below is stupidly long but splitting it would make it slower.
+    # First, strip version operator at the beginning of the string if any. Then strip the following, if present,
+    # starting from the end of the string and in order:
+    # - first occurring white space and what follows
+    # - slot and/or overlay (this sub-string starts with one or two colon characters)
+    # - revision bump number
+    # - patch number
+    # - release candidate number
+    # - pre-release number
+    # - beta number
+    # - alpha number
+    # - version number
+    sed 's/^[<>=]*//;s/ .*//;s/:.*$//;s/-r[0-9]*$//;s/_p[0-9]*$//;s/_rc[0-9]*$//;s/_pre[0-9]*$//;s/_beta[0-9]*$//;s/_alpha[0-9]*$//;s/-[0-9.]*[a-z]\?$//'
+}
+
+#
+# Get the slots present in @world matching a given atom.
+# $1: the atom
+#
+get_slots_for_atom() {
+    cat_pkg=$(echo ${1//\//\\\/} | keep_cat_pkg)
+    # The sed command below is stupidly long but splitting it would make it slower.
+    # First, only keep the package category, name, number, etc., and strip the "[ebuild ...]" header and the end of the
+    # line containing USE and EXPAND_USE flags, package size and anything else.
+    # Then strip the following, if present, starting from the end of the string and in order:
+    # - overlay name
+    # - revision bump number
+    # - patch number
+    # - release candidate number
+    # - pre-release number
+    # - beta number
+    # - alpha number
+    # Finally, only keep the slots of packages which match category/package-version making sure to discard those of the
+    # form category/package-extra-version, especially when the extra resembles a valid package version.
+    sed -n "s/^\[ebuild[^]]*] \([^ ]*\) .*/\1/;s/::.*$//;s/-r[0-9]*:/:/;s/_p[0-9]*:/:/;s/_rc[0-9]*:/:/;s/_pre[0-9]*:/:/;s/_beta[0-9]*:/:/;s/_alpha[0-9]*:/:/;s/${cat_pkg}-[0-9.]*:\(.*\)$/\1/p" /tmp/USEful-emerge-output
+}
+
+#
 # Verify the EXPAND_USE name is valid, i.e. in the EXPANDS list.
 # $1: the USE_EXPAND to verify
 #
@@ -269,24 +310,24 @@ cache_package_use_line() {
 # $2: the EXPAND_USE variable
 #
 cache_package_use() {
-    local atom atom_escaped slots slot
+    local atom slots slot
     while read line; do
         # Only process non-empty lines not starting with a pound sign.
         if [[ "${line}" != "" ]] && [[ "${line:0:1}" != "#" ]]; then
             atom=$(echo ${line} | cut -d ' ' -f 1) # FIXME use expansion
             echo -n ${atom} >> /tmp/USEful-package-use-dependencies
             if [[ ${atom/:/} != ${atom} ]]; then
-                # If the atom is for a specific slot, then it's the easy case. We only need to look for packages
-                # matching this particular slot.
+                # The atom is for a specific slot, which is the easy case. We only need to look for packages matching
+                # this particular slot.
                 cache_package_use_line ${atom}
             else
-                # If no slot is specified, then we need to look-up in the cached emerge output what slots are pulled
-                # into @world.
-                atom_escaped=$(echo ${atom} | sed 's/^[<>=]*//;s/\//\\\//g;s/_\(alpha\|beta\|pre\|rc\)[0-9]*//;s/-[0-9.]\+[a-z]\?//;s/-r[0-9]*$//')
-                slots=$(sed -n "s/_\(alpha\|beta\|pre\|rc\)[0-9]*//g;s/-r[0-9]*\([: ]\)/\1/g;s/^\[ebuild[^]]*\] ${atom_escaped}-[0-9.]*:\([^ ]*\).*/\1/p" /tmp/USEful-emerge-output)
+                # No slot is specified. We need to look-up in the cached emerge output what slots are pulled into
+                # @world.
+                slots=$(get_slots_for_atom ${atom})
                 if [[ ${slots} == "" ]]; then
-                    # No slot came back. Process the line as a slot-less atom out of precaution.
-                    # FIXME needed?
+                    # No slot came back, which means the package is either unslotted or not in @world. Process the line
+                    # as a slot-less atom out of precaution.
+                    # TODO don't cache if the package is not in @world
                     cache_package_use_line ${atom}
                 else
                     for slot in ${slots}; do
